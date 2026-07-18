@@ -20,7 +20,7 @@ test("renders the finished game shell", async () => {
   assert.doesNotMatch(html, /Your site is taking shape|codex-preview/);
 });
 
-test("includes the two-map free exploration slice", async () => {
+test("includes the expanded three-map exploration slice", async () => {
   const [html, css, js] = await Promise.all([
     readFile(new URL("index.html", root), "utf8"),
     readFile(new URL("game.css", root), "utf8"),
@@ -28,6 +28,8 @@ test("includes the two-map free exploration slice", async () => {
   ]);
   assert.match(html, /双井地铁站/);
   assert.match(html, /日坛公园/);
+  assert.match(html, /景山公园/);
+  assert.match(html, /data-map="jingshan"/);
   assert.match(html, /data-dir="up"/);
   assert.match(html, /id="actionBtn"/);
   assert.match(html, /couple-sprites-lite\.png/);
@@ -38,10 +40,13 @@ test("includes the two-map free exploration slice", async () => {
   assert.match(js, /function handhold\(\)/);
   assert.match(js, /function benchScene\(\)/);
   assert.match(js, /function kissScene\(\)/);
-  assert.match(js, /spriteLoader\.onload=readyGame/);
+  assert.match(js, /spriteLoader\.decoding='async'/);
   assert.match(js, /function solidCells\(\)/);
-  assert.match(js, /function alignPair\(hx,hy\)/);
+  assert.match(js, /function safePair\(\)/);
   assert.match(js, /setInterval\(\(\)=>move/);
+  assert.match(js, /W=30,H=22/);
+  assert.match(js, /function tileBlocked\(x,y\)/);
   assert.match(html, /ticket-machine/);
   assert.match(html, /prop\.pond/);
+  assert.match(html, /prop\.pagoda/);
 });
