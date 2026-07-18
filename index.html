@@ -10,7 +10,13 @@
   <meta property="og:description" content="重新走过双井地铁站与日坛公园的那个夏天。">
   <meta property="og:image" content="https://luckylc1998-sys.github.io/two-tracks-beijing/public/og.png">
   <meta property="og:type" content="website">
+  <link rel="preload" as="image" href="./public/couple-sprites-lite.png">
   <link rel="stylesheet" href="./game.css">
+  <style>
+    .actor::before{display:none!important}
+    .npc-label{position:absolute;left:50%;top:-4px;transform:translate(-50%,-100%);padding:2px 5px;background:#fff5cc;border:2px solid #55351f;color:#3b271b;font-size:8px;white-space:nowrap;box-shadow:2px 2px #28170f}
+    .prop.subway-bench{z-index:5}
+  </style>
 </head>
 <body>
   <main id="game" class="game">
@@ -28,7 +34,7 @@
         <div id="tiles" class="tiles"></div>
         <div id="props" class="props"></div>
         <div id="npcs" class="npcs"></div>
-        <div id="player" class="actor player" aria-label="猪头"><span class="shadow"></span></div>
+        <div id="player" class="actor player" aria-label="猪头"><span class="npc-label">猪头</span><span class="shadow"></span></div>
         <div id="actionScene" class="action-scene" hidden></div>
       </div>
       <div id="speechLayer" class="speech-layer"></div>
@@ -61,7 +67,7 @@
     </div>
     <h1>两条轨道</h1>
     <p>北京篇 · 可玩预览</p>
-    <button id="startBtn" class="start-btn">戴上耳机 · 进入回忆</button>
+    <button id="startBtn" class="start-btn" disabled>正在准备回忆…</button>
   </section>
 
   <section id="mapOverlay" class="overlay" hidden>

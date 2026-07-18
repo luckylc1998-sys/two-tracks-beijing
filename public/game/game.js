@@ -2,8 +2,8 @@ const $=s=>document.querySelector(s);
 const TILE=32,W=18,H=12;
 const state={map:'subway',x:2,y:8,stage:0,parkStage:0,moving:false,locked:false,follow:false,unlockedPark:localStorage.getItem('bj-park-unlocked')==='1'};
 const maps={
-  subway:{name:'双井地铁站',date:'2022 · 07 · 11',start:[2,8],hedy:[13,5],tiles:Array.from({length:H},(_,y)=>Array.from({length:W},(_,x)=>y<2?'wall':y>9?'track':y===9?'edge':'platform')),props:[['🚇',2,3],['双井站',4,2,'sign'],['▤',8,3],['▤',10,3],['↗',16,3],['出口',15,2,'sign']]},
-  park:{name:'日坛公园',date:'2022 · 07 · 11 · 下午',start:[1,9],hedy:[2,9],tiles:Array.from({length:H},(_,y)=>Array.from({length:W},(_,x)=>((x>=2&&x<=15&&y>=4&&y<=9)||(y>=2&&y<=10&&x>=7&&x<=10))?'path':(x>13&&y<5)?'hill':'grass')),props:[['🌳',1,2],['🌳',4,2],['🌳',12,2],['🌳',16,7],['🌲',2,6],['🌲',15,9],['🪑',8,4,'wide'],['🌼',5,7],['🌷',12,8],['小土坡',14,2,'sign'],['日坛公园',1,10,'sign']]}
+  subway:{name:'双井地铁站',date:'2022 · 07 · 11',start:[2,8],hedy:[11,5],tiles:Array.from({length:H},(_,y)=>Array.from({length:W},(_,x)=>y<2?'wall':y>9?'track':y===9?'edge':'platform')),props:[['',1,2,'pillar'],['',6,2,'pillar'],['',12,2,'pillar'],['',17,2,'pillar'],['',2,3,'metro'],['双井站',4,2,'sign station'],['',7,3,'poster'],['',9,3,'poster ad'],['',12,3,'routeboard'],['',15,3,'exit-arrow'],['出口 A',14,2,'sign exit-sign'],['',5,8,'bench subway-bench'],['',14,8,'bench subway-bench'],['',0,9,'safety-rail'],['',6,9,'safety-rail'],['',12,9,'safety-rail']]},
+  park:{name:'日坛公园',date:'2022 · 07 · 11 · 下午',start:[1,9],hedy:[2,9],tiles:Array.from({length:H},(_,y)=>Array.from({length:W},(_,x)=>((x>=2&&x<=15&&y>=4&&y<=9)||(y>=2&&y<=10&&x>=7&&x<=10))?'path':(x>13&&y<5)?'hill':'grass')),props:[['',0,1,'tree oak big'],['',3,1,'tree willow'],['',11,1,'tree oak'],['',16,6,'tree willow big'],['',1,5,'tree oak'],['',15,9,'tree oak'],['',8,4,'bench park-bench'],['',5,7,'flowerbed pink'],['',12,8,'flowerbed yellow'],['',6,2,'lamp'],['',11,5,'lamp'],['',3,9,'shrub'],['',13,6,'shrub'],['小土坡',14,2,'sign hill-sign'],['日坛公园',0,10,'sign park-sign'],['',9,2,'stone-wall'],['',14,4,'stone-wall']]}
 };
 const blocked={subway:new Set(['0,0']),park:new Set(['1,2','4,2','12,2','16,7','2,6','15,9','8,4','9,4'])};
 let holdTimer=null;
@@ -12,7 +12,7 @@ function drawMap(name){
   state.map=name;const m=maps[name];$('#chapterName').textContent=m.name;$('#chapterDate').textContent=m.date;
   $('#tiles').innerHTML=m.tiles.flatMap((row,y)=>row.map((t,x)=>`<i class="tile ${t}" data-x="${x}" data-y="${y}"></i>`)).join('');
   $('#props').innerHTML=m.props.map(([v,x,y,c=''])=>`<i class="prop ${c}" style="left:${x*TILE}px;top:${y*TILE}px">${v}</i>`).join('');
-  const [hx,hy]=m.hedy;$('#npcs').innerHTML=`<div id="hedy" class="actor hedy" style="left:${hx*TILE}px;top:${hy*TILE}px"><span class="shadow"></span></div>`;
+  const [hx,hy]=m.hedy;$('#npcs').innerHTML=`<div id="hedy" class="actor hedy" style="left:${hx*TILE}px;top:${hy*TILE}px"><span class="npc-label">Hedy</span><span class="shadow"></span></div>`;
   [state.x,state.y]=m.start;state.locked=false;state.follow=name==='park';placeActors();
   if(name==='subway'){setObjective(state.stage<2?'找到 Hedy':'从右上角出口前往日坛公园')}else setObjective(['和 Hedy 一起散步','主动牵住她的手','到长椅坐一会儿','前往小土坡'][Math.min(state.parkStage,3)]);
   camera();closeOverlay('mapOverlay');
@@ -22,7 +22,7 @@ function placeActors(){
   if(state.follow&&$('#hedy')){const hx=Math.max(1,state.x-1),hy=state.y;$('#hedy').style.left=`${hx*TILE}px`;$('#hedy').style.top=`${hy*TILE}px`}
 }
 function camera(){
-  const vp=$('#viewport'),world=$('#world');const scale=Math.max(1,Math.min(1.45,vp.clientHeight/384));
+  const vp=$('#viewport'),world=$('#world');const scale=vp.clientWidth<760?1.05:Math.max(1,Math.min(1.35,vp.clientHeight/384));
   const px=state.x*TILE*scale,py=state.y*TILE*scale;const maxX=Math.max(0,W*TILE*scale-vp.clientWidth),maxY=Math.max(0,H*TILE*scale-vp.clientHeight);
   const cx=Math.max(0,Math.min(maxX,px-vp.clientWidth/2)),cy=Math.max(0,Math.min(maxY,py-vp.clientHeight/2));world.style.transform=`translate(${-cx}px,${-cy}px) scale(${scale})`;
 }
@@ -32,13 +32,13 @@ function move(dir){if(state.locked)return;const d={up:[0,-1],down:[0,1],left:[-1
 }
 function dist(x,y){return Math.abs(state.x-x)+Math.abs(state.y-y)}
 function checkNearby(){let text='';
-  if(state.map==='subway'){if(state.stage<2&&dist(13,5)<=2)text='和 Hedy 说话';else if(state.stage>=2&&state.x>=15&&state.y<=4)text='前往日坛公园'}
+  if(state.map==='subway'){if(state.stage<2&&dist(11,5)<=2)text='和 Hedy 说话';else if(state.stage>=2&&state.x>=15&&state.y<=4)text='前往日坛公园'}
   else{if(state.parkStage===0&&state.x>=4)text='牵住 Hedy';if(state.parkStage===1&&dist(8,4)<=2)text='在长椅休息';if(state.parkStage>=2&&dist(14,3)<=2)text='走上小土坡'}
   $('#interactBtn').hidden=!text;$('#interactBtn').textContent=text||'互动';
 }
 function interact(){if(state.locked)return;
   if(state.map==='subway'){
-    if(state.stage<2&&dist(13,5)<=2)return subwayMeeting();
+    if(state.stage<2&&dist(11,5)<=2)return subwayMeeting();
     if(state.stage>=2&&state.x>=15&&state.y<=4){state.unlockedPark=true;localStorage.setItem('bj-park-unlocked','1');$('#parkMapButton').disabled=false;return transition('从地铁站出来后，他们穿过使馆聚集的街道，向日坛公园走去。',()=>drawMap('park'))}
     return bubble('猪头','再往前走走，她应该就在站台那边。');
   }
@@ -49,7 +49,7 @@ function interact(){if(state.locked)return;
 }
 function subwayMeeting(){
   if(state.stage===0){state.stage=1;state.locked=true;bubble('猪头','真人比照片好看。',()=>bubble('Hedy','你一直看我干嘛呀？',()=>{bubble('猪头','我们之前打过赌。你要主动抱我。',()=>{state.locked=false;setObjective('让 Hedy 履行拥抱赌约')})}))}
-  else{state.stage=2;actionAt('shy-hug',13,5);bubble('猪头','什么时候抱我？愿赌服输，不许耍赖。',()=>transition('两个人一边催、一边不好意思地笑。最后，她在地铁站的角落浅浅抱了他一下。很短，但赌约兑现了。',()=>{endAction();setObjective('从右上角出口前往日坛公园');heartBurst(13,5)}))}
+  else{state.stage=2;actionAt('shy-hug',11,5);bubble('猪头','什么时候抱我？愿赌服输，不许耍赖。',()=>transition('两个人一边催、一边不好意思地笑。最后，她在地铁站的角落浅浅抱了他一下。很短，但赌约兑现了。',()=>{endAction();setObjective('从右上角出口前往日坛公园');heartBurst(11,5)}))}
 }
 function handhold(){state.parkStage=1;actionAt('hold',state.x,state.y);bubble('猪头','手给我。',()=>bubble('Hedy','好呀。',()=>transition('这是猪头第一次主动牵起 Hedy 的手。公园里的路忽然变得很长，也很短。',()=>{endAction();state.follow=true;setObjective('到长椅坐一会儿');heartBurst(state.x,state.y)})))}
 function benchScene(){state.parkStage=2;state.locked=true;actionAt('hold',8,4);bubble('Hedy','看看宝宝。',()=>bubble('猪头','在看。',()=>bubble('Hedy','再拍一个。',()=>transition('他们在长椅上休息，拍了很多短短的视频。镜头晃来晃去，又总会回到彼此身上。',()=>{endAction();state.locked=false;setObjective('前往右上方的小土坡')}))))}
@@ -71,3 +71,8 @@ $('#soundBtn').onclick=e=>{e.currentTarget.classList.toggle('muted');e.currentTa
 document.querySelectorAll('[data-dir]').forEach(b=>{const go=e=>{e.preventDefault();move(b.dataset.dir)};b.addEventListener('pointerdown',go)});
 document.addEventListener('keydown',e=>{const d={ArrowUp:'up',w:'up',W:'up',ArrowDown:'down',s:'down',S:'down',ArrowLeft:'left',a:'left',A:'left',ArrowRight:'right',d:'right',D:'right'}[e.key];if(d){e.preventDefault();move(d)}if([' ','Enter','e','E'].includes(e.key)){e.preventDefault();interact()}});
 window.addEventListener('resize',camera);drawMap('subway');
+
+const spriteLoader=new Image();
+const readyGame=()=>{const b=$('#startBtn');b.disabled=false;b.textContent='戴上耳机 · 进入回忆'};
+spriteLoader.onload=readyGame;spriteLoader.onerror=readyGame;spriteLoader.src='./public/couple-sprites-lite.png';
+if(spriteLoader.complete)readyGame();

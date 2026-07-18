@@ -30,6 +30,7 @@ test("includes the two-map free exploration slice", async () => {
   assert.match(html, /日坛公园/);
   assert.match(html, /data-dir="up"/);
   assert.match(html, /id="actionBtn"/);
+  assert.match(html, /couple-sprites-lite\.png/);
   assert.match(css, /\.tiles\{/);
   assert.match(css, /touch-action:none/);
   assert.match(js, /function move\(dir\)/);
@@ -37,4 +38,5 @@ test("includes the two-map free exploration slice", async () => {
   assert.match(js, /function handhold\(\)/);
   assert.match(js, /function benchScene\(\)/);
   assert.match(js, /function kissScene\(\)/);
+  assert.match(js, /spriteLoader\.onload=readyGame/);
 });
