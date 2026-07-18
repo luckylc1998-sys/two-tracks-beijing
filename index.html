@@ -16,6 +16,19 @@
     .actor::before{display:none!important}
     .npc-label{position:absolute;left:50%;top:-4px;transform:translate(-50%,-100%);padding:2px 5px;background:#fff5cc;border:2px solid #55351f;color:#3b271b;font-size:8px;white-space:nowrap;box-shadow:2px 2px #28170f}
     .prop.subway-bench{z-index:5}
+    .tile.v1.grass{filter:brightness(1.04)}.tile.v2.grass{filter:saturate(.92)}.tile.v3.path{filter:brightness(.96)}
+    .tile.grass.v1::after,.tile.grass.v3::after{content:"";position:absolute;width:2px;height:5px;background:#456f32;left:8px;top:17px;box-shadow:3px -2px #8ab85d,17px 7px #4d7935}
+    .tile.path.v2::after{content:"";position:absolute;width:5px;height:3px;background:#a98c5b;left:21px;top:7px;box-shadow:-14px 16px #b89c65}
+    .actor.nearby,.prop.nearby{filter:drop-shadow(0 0 5px #fff2a0) drop-shadow(0 0 7px #f0c955)!important}
+    .actor.bump{animation:bump-wall .16s steps(2)}@keyframes bump-wall{50%{translate:0 -3px;filter:drop-shadow(0 0 4px #fff)}}
+    .prop.ticket-machine{width:25px;height:38px;background:linear-gradient(#385e72 0 20%,#9fd5df 21% 42%,#35505d 43%);border:3px solid #243842;box-shadow:inset 0 -7px #263d47}.prop.ticket-machine.red{background:linear-gradient(#8e4a42 0 20%,#f1bb8d 21% 42%,#693934 43%)}
+    .prop.trash{width:18px;height:24px;background:linear-gradient(90deg,#405e63,#789095,#405e63);border:2px solid #293e42;border-top-width:5px}
+    .prop.floor-arrow::after{content:"➜";font-size:23px;color:#b8a36c;opacity:.6}.prop.ceiling-light{width:44px;height:4px;background:#fffbe5;box-shadow:0 0 7px #fff8c8;opacity:.85}
+    .prop.pond{width:96px;height:55px;border-radius:47%;background:repeating-radial-gradient(ellipse at 40% 45%,#9bd0d2 0 4px,#65a9b6 5px 11px);border:5px solid #5b8045;box-shadow:0 0 0 3px #87aa58}.prop.pond::after{content:"";position:absolute;width:14px;height:8px;border-radius:50%;background:#6e9b49;left:17px;top:19px;box-shadow:42px 12px #6e9b49}
+    .prop.picnic{width:29px;height:23px;background:repeating-linear-gradient(45deg,#f2d5aa 0 5px,#c96865 5px 10px);border:2px solid #8e5044;transform:rotate(-4deg)}
+    .prop.fallen-leaves::after{content:"✦ ･";color:#c67b3b;font-size:18px}.prop.butterflies::after{content:"﹒✦";color:#f3df6c;font-size:16px;animation:flutter 1s steps(2) infinite}@keyframes flutter{50%{translate:3px -5px}}.prop.bird::after{content:"⌄";font:bold 20px Arial;color:#3e4e58}
+    .prop.pavilion{width:57px;height:43px;background:linear-gradient(#9b3f32 0 18%,#e5be67 19% 28%,#83402f 29%);border:3px solid #572b25;clip-path:polygon(0 22%,15% 0,85% 0,100% 22%,89% 25%,87% 100%,13% 100%,11% 25%)}
+    .prop.fence{width:68px;height:25px;background:repeating-linear-gradient(90deg,#805638 0 5px,transparent 5px 17px);border-top:5px solid #6e492f;border-bottom:4px solid #6e492f}
   </style>
 </head>
 <body>

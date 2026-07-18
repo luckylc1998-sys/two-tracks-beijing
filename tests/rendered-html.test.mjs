@@ -39,4 +39,9 @@ test("includes the two-map free exploration slice", async () => {
   assert.match(js, /function benchScene\(\)/);
   assert.match(js, /function kissScene\(\)/);
   assert.match(js, /spriteLoader\.onload=readyGame/);
+  assert.match(js, /function solidCells\(\)/);
+  assert.match(js, /function alignPair\(hx,hy\)/);
+  assert.match(js, /setInterval\(\(\)=>move/);
+  assert.match(html, /ticket-machine/);
+  assert.match(html, /prop\.pond/);
 });
