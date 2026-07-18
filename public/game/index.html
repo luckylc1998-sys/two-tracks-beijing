@@ -1,99 +1,91 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#17192b" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta name="theme-color" content="#5f3d2a">
   <title>两条轨道 · 北京篇</title>
-  <link rel="stylesheet" href="./game.css" />
-  <style>
-    .memory-panel video{display:block;width:100%;max-height:60vh;object-fit:contain;background:#111}.memory-panel [hidden]{display:none}.video-playlist{display:flex;gap:7px;overflow:auto;margin:10px 0}.video-playlist:empty{display:none}.video-playlist button{flex:0 0 auto;border:2px solid #242337;background:#ddd1ae;color:#242337;padding:8px 11px;cursor:pointer}.video-playlist button.active{background:#ef6a77;color:#fff}
-    .scene.map-scene,.scene.subway-scene,.scene.park-scene,.scene.loft-scene,.scene.night-scene{background-image:url('./public/pixel-scene-atlas.png')!important;background-size:500% 100%!important;background-repeat:no-repeat!important;background-color:#14213a!important}
-    .scene.map-scene{background-position:0 0!important}.scene.subway-scene{background-position:25% 0!important}.scene.park-scene{background-position:50% 0!important}.scene.loft-scene{background-position:75% 0!important}.scene.night-scene{background-position:100% 0!important}
-    .scene.map-scene::before,.scene.subway-scene::before,.scene.park-scene::before,.scene.loft-scene::before,.scene.night-scene::before,.scene.map-scene::after,.scene.subway-scene::after,.scene.park-scene::after,.scene.loft-scene::after,.scene.night-scene::after{display:none!important}
-    .sprite{width:46px!important;height:74px!important;bottom:15%!important;transform-origin:bottom center;animation:idle .8s steps(2,end) infinite}.sprite::before{width:28px!important;height:27px!important;left:9px!important;border:3px solid #2a1720;box-shadow:-3px -9px 0 #171724,8px -7px 0 #171724,0 4px 0 -1px #efb68d!important}.sprite::after{width:36px!important;height:39px!important;left:5px!important;top:28px!important;border:3px solid #171724;box-shadow:-7px 37px 0 -2px #292c4b,22px 37px 0 -2px #292c4b,0 41px 0 1px #171724!important}.sprite.hedy::before{box-shadow:-5px -10px 0 #171724,7px -10px 0 #171724,13px -2px 0 #171724!important}.sprite.hug{animation:none!important;transform:translateX(-15px) rotate(-3deg)!important}.hotspot{border-radius:0!important;transform:rotate(45deg);background:#ffd34e!important;box-shadow:0 0 0 4px #fff,0 0 0 8px #6f4d22,0 0 22px #fff!important}.hotspot::after{display:block;transform:rotate(-45deg)}
-    .sprite{width:112px!important;height:112px!important;background-image:url('./public/couple-sprites.png')!important;background-size:800% 400%!important;background-repeat:no-repeat!important;background-position:0 0!important;filter:drop-shadow(5px 6px 0 rgba(8,9,18,.3))!important}.sprite::before,.sprite::after{display:none!important}.sprite.hedy{background-position:57.143% 0!important}.sprite.walking{animation:male-walk .7s steps(1,end) infinite!important}.sprite.hedy.walking{animation:hedy-walk .7s steps(1,end) infinite!important}.sprite .name-tag{top:-18px}
-    .couple-sprite{position:absolute;left:50%;bottom:14%;translate:-50% 0;width:178px;height:122px;background-image:url('./public/couple-sprites.png');background-size:800% 400%;background-repeat:no-repeat;filter:drop-shadow(6px 7px 0 rgba(8,9,18,.28));animation:couple-breathe .8s steps(2,end) infinite}.couple-sprite.hold{background-position:0 100%}.couple-sprite.shy-hug{background-position:28.571% 100%}.couple-sprite.warm-hug{background-position:57.143% 100%}.couple-sprite.kiss{background-position:85.714% 100%}.couple-sprite .name-tag{top:-18px}
-    @keyframes idle{50%{translate:0 -3px}}
-    @keyframes male-walk{0%{background-position:0 33.333%}25%{background-position:14.286% 33.333%}50%{background-position:28.571% 33.333%}75%,100%{background-position:42.857% 33.333%}}@keyframes hedy-walk{0%{background-position:57.143% 33.333%}25%{background-position:71.429% 33.333%}50%{background-position:85.714% 33.333%}75%,100%{background-position:100% 33.333%}}@keyframes couple-breathe{50%{translate:-50% -3px}}
-    .hud{height:78px;background:#6f4428;border:4px solid #2e1b14;box-shadow:inset 0 4px #b57948,inset 0 -4px #422719;padding:8px 14px}.chapter{background:#f3d89a;color:#39251a;border:4px solid #4c2c1d;padding:7px 16px;box-shadow:inset 0 0 0 3px #d6a85f}.chapter span{color:#8b5c34}.farm-status{display:flex;align-items:center;gap:8px}.day-badge,.heart-meter{background:#f3d89a;color:#44291c;border:3px solid #4c2c1d;padding:5px 9px;box-shadow:inset 0 0 0 2px #d5a55d}.day-badge small,.day-badge b,.heart-meter small{display:block}.day-badge small,.heart-meter small{font-size:8px}.heart-meter span{color:#d74a4a;letter-spacing:2px}.inventory{display:flex;background:#472c20;border:3px solid #29170f;padding:3px;gap:3px}.inventory i{display:grid;place-items:center;width:31px;height:31px;background:#d6a85f;border:2px solid #7c4b2b;color:#432718;font-style:normal}.pixel-btn.quiet{background:#d6a85f;color:#402719;border:3px solid #4c2c1d;box-shadow:3px 3px #28160e}.story-ui{background:#352217;border-top:5px solid #1d120d;padding:10px clamp(12px,4vw,42px) calc(10px + env(safe-area-inset-bottom));transition:min-height .25s}.story-ui.character-mode{min-height:43px;padding-top:5px}.story-ui.character-mode .dialogue{display:none}.story-ui.character-mode .progress{margin-bottom:4px}.dialogue{background:#f5dfa9;border:5px solid #57341f;box-shadow:inset 0 0 0 3px #c99554,6px 6px #1b100b;color:#372319}.speaker{background:#7a482a;border-color:#4c2c1d}.progress{background:#21140f;border:2px solid #5d3924;height:8px}.progress span{background:#e7b24f}.choices button{background:#c88843;border:4px solid #4c2c1d;color:#2f1c12;box-shadow:inset 0 0 0 2px #efc676}.speech-bubble{position:absolute;z-index:8;bottom:48%;max-width:min(270px,45vw);background:#fff6d7;color:#342119;border:4px solid #4c2c1d;padding:10px 13px;line-height:1.5;font-size:14px;box-shadow:5px 5px 0 #21130c;animation:bubble-in .22s steps(2,end)}.speech-bubble::after{content:"";position:absolute;bottom:-14px;left:45%;border:7px solid transparent;border-top-color:#4c2c1d}.speech-bubble.pig{left:28%}.speech-bubble.hedy{right:27%}.speech-bubble.couple{left:50%;translate:-50% 0;bottom:52%}.speech-bubble.thought{border-style:dashed;color:#645044}.scene-prop.phone{position:absolute;z-index:7;left:58%;bottom:34%;font-size:34px;filter:drop-shadow(3px 3px #372319);animation:phone-bob .7s steps(2,end) infinite}.couple-sprite.selfie{background-position:0 100%;left:49%;rotate:-2deg}.couple-sprite.bench{bottom:12%;scale:.94}.memory-unlock{position:fixed;inset:0;z-index:40;display:grid;place-items:center;background:#171224dd}.unlock-card{background:#f2dfb4;color:#3b281b;border:7px solid #684126;box-shadow:12px 12px #100a07;padding:28px;text-align:center;max-width:520px}.unlock-card img{width:min(360px,75vw);transform:rotate(-2deg);box-shadow:7px 8px #6e5238}.unlock-card button{margin-top:18px}.unlock-card[hidden]{display:none}@keyframes bubble-in{from{scale:.8;opacity:0}}@keyframes phone-bob{50%{translate:0 -4px}}@media(max-width:760px){.farm-status{display:none}.hud{height:66px}.speech-bubble{bottom:51%;font-size:12px}.speech-bubble.pig{left:9%}.speech-bubble.hedy{right:9%}.chapter{padding:5px 8px}.sprite{width:92px!important;height:92px!important}.couple-sprite{width:150px;height:108px}}
-  </style>
-  <style>.memory-unlock[hidden]{display:none!important}</style>
+  <meta name="description" content="猪头与 Hedy 的北京像素回忆探索游戏">
+  <meta property="og:title" content="两条轨道 · 北京篇">
+  <meta property="og:description" content="重新走过双井地铁站与日坛公园的那个夏天。">
+  <meta property="og:image" content="https://luckylc1998-sys.github.io/two-tracks-beijing/public/og.png">
+  <meta property="og:type" content="website">
+  <link rel="stylesheet" href="./game.css">
 </head>
 <body>
-  <main id="game" class="game" aria-live="polite">
-    <header class="hud">
-      <button id="homeBtn" class="pixel-btn quiet" type="button">⌂ 回忆地图</button>
-      <div class="chapter"><span id="chapterKicker">序章</span><strong id="chapterTitle">两条轨道</strong></div>
-      <div class="farm-status" aria-label="游戏状态">
-        <div class="day-badge"><small>2022</small><b id="dayLabel">序章</b></div>
-        <div class="heart-meter"><span>♥ ♥ ♥</span><small>回忆值</small></div>
-        <div class="inventory" aria-label="回忆物品栏"><i>✉</i><i>✈</i><i>♡</i><i id="polaroidSlot">?</i></div>
+  <main id="game" class="game">
+    <header class="topbar">
+      <button id="mapBtn" class="wood-btn" aria-label="打开地图">地图</button>
+      <div class="chapter-sign">
+        <small id="chapterDate">2022 · 07 · 11</small>
+        <strong id="chapterName">双井地铁站</strong>
       </div>
-      <button id="soundBtn" class="pixel-btn quiet" type="button" aria-label="切换声音">♪ 开</button>
+      <button id="soundBtn" class="wood-btn" aria-label="音乐开关">♫</button>
     </header>
 
-    <section id="screen" class="screen">
-      <div id="sky" class="sky"></div>
-      <div id="scene" class="scene"></div>
-      <div id="sprites" class="sprites"></div>
-      <div id="particles" class="particles"></div>
-    </section>
-
-    <aside id="memoryPanel" class="memory-panel" hidden>
-      <button id="closeMemory" class="close" type="button">×</button>
-      <p class="eyebrow">REAL MEMORY</p>
-      <h2 id="memoryTitle"></h2>
-      <img id="memoryImage" alt="真实回忆照片" />
-      <video id="memoryVideo" controls playsinline hidden></video>
-      <div id="videoPlaylist" class="video-playlist"></div>
-      <p id="memoryCaption"></p>
-    </aside>
-
-    <section class="story-ui">
-      <div class="progress"><span id="progressFill"></span></div>
-      <div id="dialogue" class="dialogue">
-        <div id="speaker" class="speaker">旁白</div>
-        <p id="line">在两个毫不相干的时空中，两个陌生人正朝着彼此的轨道不断奔跑。</p>
-        <span class="continue">点击继续 ▾</span>
+    <section id="viewport" class="viewport" aria-label="游戏地图">
+      <div id="world" class="world">
+        <div id="tiles" class="tiles"></div>
+        <div id="props" class="props"></div>
+        <div id="npcs" class="npcs"></div>
+        <div id="player" class="actor player" aria-label="猪头"><span class="shadow"></span></div>
+        <div id="actionScene" class="action-scene" hidden></div>
       </div>
-      <div id="choices" class="choices"></div>
-      <div class="controls"><span>点击场景推进回忆</span><span>ESC · 回忆地图</span></div>
+      <div id="speechLayer" class="speech-layer"></div>
+      <div id="objective" class="objective"><span>任务</span><b id="objectiveText">找到 Hedy</b></div>
+      <button id="interactBtn" class="interact-btn" hidden>互动</button>
     </section>
+
+    <section id="narrator" class="narrator" hidden>
+      <span class="feather">✦</span><p id="narratorText"></p><small>点击继续</small>
+    </section>
+
+    <nav class="mobile-controls" aria-label="移动控制">
+      <div class="dpad">
+        <button data-dir="up" aria-label="向上">▲</button>
+        <button data-dir="left" aria-label="向左">◀</button>
+        <i></i>
+        <button data-dir="right" aria-label="向右">▶</button>
+        <button data-dir="down" aria-label="向下">▼</button>
+      </div>
+      <button id="actionBtn" class="action-btn" aria-label="互动">A<small>互动</small></button>
+    </nav>
   </main>
 
-  <div id="titleCard" class="title-card">
-    <div class="stars"></div>
+  <section id="titleScreen" class="title-screen">
+    <div class="pixel-sky"><i></i><i></i><i></i></div>
     <div class="paper-note">
       <span>To. 猪猪宝贝：</span>
-      <p>在两个毫不相干的时空中，<br>朝着对方的轨道不断奔跑，<br>就觉得好神奇呢……</p>
+      <p>21年7月1日我们还是陌生人呢，想想那个时候幼稚的我和奔波的你，在两个毫不相干的时空中朝着对方的轨道不断奔跑，就觉得好神奇呢……</p>
       <small>From 老婆 ♡</small>
     </div>
     <h1>两条轨道</h1>
-    <p class="subtitle">开头 · 北京篇</p>
-    <button id="startBtn" class="pixel-btn primary" type="button">开始回忆</button>
-    <p class="hint">建议打开声音 · 约 12 分钟</p>
-  </div>
+    <p>北京篇 · 可玩预览</p>
+    <button id="startBtn" class="start-btn">戴上耳机 · 进入回忆</button>
+  </section>
 
-  <div id="chapterMap" class="chapter-map" hidden>
-    <div class="map-card">
-      <button id="closeMap" class="close" type="button">×</button>
-      <p class="eyebrow">MEMORY ROUTE</p>
-      <h2>我们的北京</h2>
-      <div id="mapDays" class="map-days"></div>
-      <p class="map-note">已点亮的日子可以重新进入。故事会自动保存在这台设备上。</p>
+  <section id="mapOverlay" class="overlay" hidden>
+    <div class="journal">
+      <button class="close" data-close="mapOverlay">×</button>
+      <small>BEIJING · MEMORY MAP</small>
+      <h2>北京 · 第一次见面</h2>
+      <div class="route-list">
+        <button data-map="subway"><i>🚇</i><span><b>双井地铁站</b><small>赌约与第一次拥抱</small></span></button>
+        <button data-map="park" id="parkMapButton" disabled><i>🌳</i><span><b>日坛公园</b><small>牵手、长椅与小土坡</small></span></button>
+        <button disabled><i>🔒</i><span><b>民宿与景山</b><small>后续版本开放</small></span></button>
+      </div>
     </div>
-  </div>
+  </section>
 
-  <div id="memoryUnlock" class="memory-unlock" hidden>
-    <div class="unlock-card">
-      <p class="eyebrow">MEMORY UNLOCKED</p>
-      <h2>北京篇完成</h2>
-      <img src="./public/photos/polaroids.png" alt="三张拍立得" />
-      <p>获得回忆物品：三张拍立得</p>
-      <button id="collectMemory" class="pixel-btn primary" type="button">收进回忆箱</button>
+  <section id="completeOverlay" class="overlay" hidden>
+    <div class="memory-card">
+      <small>MEMORY UNLOCKED</small>
+      <h2>日坛公园的下午</h2>
+      <p>你们不再只是观看过去，而是重新走过了它。</p>
+      <div class="locked-polaroid">拍立得将在北京篇全部完成后解锁</div>
+      <button id="continueExplore" class="start-btn">继续在公园散步</button>
     </div>
-  </div>
+  </section>
 
   <script src="./game.js"></script>
 </body>

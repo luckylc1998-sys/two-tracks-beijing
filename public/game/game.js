@@ -1,111 +1,73 @@
-const $ = (s) => document.querySelector(s);
-const scene = $('#scene'), sky = $('#sky'), sprites = $('#sprites'), dialogue = $('#dialogue');
-const speaker = $('#speaker'), line = $('#line'), choices = $('#choices'), fill = $('#progressFill');
-const chapterKicker = $('#chapterKicker'), chapterTitle = $('#chapterTitle');
-const memoryPanel = $('#memoryPanel'), memoryImage = $('#memoryImage'), memoryVideo = $('#memoryVideo'), videoPlaylist = $('#videoPlaylist'), memoryTitle = $('#memoryTitle'), memoryCaption = $('#memoryCaption');
+const $=s=>document.querySelector(s);
+const TILE=32,W=18,H=12;
+const state={map:'subway',x:2,y:8,stage:0,parkStage:0,moving:false,locked:false,follow:false,unlockedPark:localStorage.getItem('bj-park-unlocked')==='1'};
+const maps={
+  subway:{name:'双井地铁站',date:'2022 · 07 · 11',start:[2,8],hedy:[13,5],tiles:Array.from({length:H},(_,y)=>Array.from({length:W},(_,x)=>y<2?'wall':y>9?'track':y===9?'edge':'platform')),props:[['🚇',2,3],['双井站',4,2,'sign'],['▤',8,3],['▤',10,3],['↗',16,3],['出口',15,2,'sign']]},
+  park:{name:'日坛公园',date:'2022 · 07 · 11 · 下午',start:[1,9],hedy:[2,9],tiles:Array.from({length:H},(_,y)=>Array.from({length:W},(_,x)=>((x>=2&&x<=15&&y>=4&&y<=9)||(y>=2&&y<=10&&x>=7&&x<=10))?'path':(x>13&&y<5)?'hill':'grass')),props:[['🌳',1,2],['🌳',4,2],['🌳',12,2],['🌳',16,7],['🌲',2,6],['🌲',15,9],['🪑',8,4,'wide'],['🌼',5,7],['🌷',12,8],['小土坡',14,2,'sign'],['日坛公园',1,10,'sign']]}
+};
+const blocked={subway:new Set(['0,0']),park:new Set(['1,2','4,2','12,2','16,7','2,6','15,9','8,4','9,4'])};
+let holdTimer=null;
 
-const moments = [
-  {ch:'序章',title:'两条轨道',scene:'map',who:'旁白',text:'2022年5月以前，猪头和Hedy还在天南海北，过着彼此毫无交集的生活。',actors:[['猪头',20],['Hedy',75]]},
-  {scene:'phone',who:'系统',text:'2022年5月6日 01:06 · 你已添加了 Hedy，现在可以开始聊天了。',actors:[['猪头',28],['Hedy',68]]},
-  {scene:'phone',who:'Hedy',text:'我是哈勾哈。',actors:[['猪头',28],['Hedy',68]]},
-  {scene:'phone',who:'猪头',text:'你好。',actors:[['猪头',28],['Hedy',68]]},
-  {scene:'phone',who:'Hedy',text:'我本来想说你通过了，但是说不说话决定权在我。但是好傻，还是算了。',actors:[['猪头',28],['Hedy',68]]},
-  {scene:'phone',who:'猪头',text:'嘴硬小子。',actors:[['猪头',28],['Hedy',68]]},
-  {scene:'quiz',who:'旁白',text:'最早的时候，他们会玩学习强国的双人知识问答。输赢不重要，重要的是——',choice:['喷射战士！','继续答题'],actors:[['猪头',28],['Hedy',68]]},
-  {scene:'map-heart',who:'旁白',text:'一来一回的玩笑里，两条轨道在上海附近第一次亮起了同一种颜色。',actors:[['猪头',46],['Hedy',53]],heart:true},
-  {scene:'rain-call',who:'猪头',text:'下雨很烦。',actors:[['猪头',25],['Hedy',72]]},
-  {scene:'rain-call',who:'Hedy',text:'才意识到我们不在一个城市了。',actors:[['猪头',25],['Hedy',72]],heart:true},
-  {scene:'rain-call',who:'猪头 · 心里',text:'听到这句话的时候，我其实很开心。原来不只我一个人在意这段距离。',actors:[['猪头',25],['Hedy',72]]},
-  {scene:'map-route',who:'旁白',text:'Hedy从上海去了天津，再去北京。猪头从上海去了南昌。视频、聊天和答题，把距离一点点缩短。',actors:[['猪头',32],['Hedy',72]]},
-  {scene:'ticket',who:'猪头 · 心里',text:'没有发生什么特别的事。只是很想见她。',choice:['买一张去北京的机票'],actors:[['猪头',35],['Hedy',74]]},
-  {ch:'第一章',title:'北京 · 终于在同一座城市',scene:'arrival',who:'旁白',text:'2022年7月11日。飞机落地北京，猪头打车去了民宿，收拾好行李，吃了一个人的麦当劳。',actors:[['猪头',30]]},
-  {scene:'subway',who:'猪头 · 心里',text:'双井地铁站。真人比照片好看。',actors:[['猪头',32],['Hedy',68]]},
-  {scene:'subway',who:'猪头',text:'我们之前打过赌。赌约是——你要主动抱我。',choice:['提醒她履行赌约'],actors:[['猪头',42],['Hedy',61]]},
-  {scene:'subway',who:'猪头',text:'什么时候抱我？愿赌服输，不许耍赖。',actors:[['猪头',43],['Hedy',59]]},
-  {scene:'subway-hug',who:'旁白',text:'两个人一边催、一边不好意思地笑。最后，她在地铁站的角落浅浅地抱了他一下。很短，但赌约兑现了。',actors:[['猪头',47],['Hedy',53]],action:'shy-hug',heart:true},
-  {scene:'park',who:'旁白',text:'他们走过领事馆集中的街道，去了日坛公园，也去了她小时候常玩的游乐场。',actors:[['猪头',38],['Hedy',55]]},
-  {scene:'park',who:'猪头',text:'他主动牵起她的手。',choice:['牵住Hedy'],actors:[['猪头',43],['Hedy',52]]},
-  {scene:'park',who:'旁白',text:'走累以后，他们在日坛公园的长椅上坐下来休息。镜头一会儿朝上，一会儿躲到游乐设施后面，又重新对准两个人。',actors:[['猪头',43],['Hedy',52]],action:'selfie'},
-  {scene:'park',who:'Hedy',text:'看看宝宝。',actors:[['猪头',43],['Hedy',52]],action:'selfie',prop:'phone'},
-  {scene:'park',who:'猪头',text:'在看。',actors:[['猪头',43],['Hedy',52]],action:'selfie',prop:'phone'},
-  {scene:'park',who:'Hedy',text:'再拍一个。',actors:[['猪头',43],['Hedy',52]],action:'selfie',prop:'phone'},
-  {scene:'park',who:'旁白',text:'于是又拍了一个。那些当时普通得不能再普通的画面，后来也成为了记忆的一部分。',actors:[['猪头',43],['Hedy',52]],action:'selfie'},
-  {scene:'park-kiss',who:'旁白',text:'小土坡上，Hedy履行了另一个赌约，主动吻了他。',actors:[['猪头',47],['Hedy',51]],action:'kiss',heart:true},
-  {scene:'park-kiss',who:'猪头',text:'我现在好幸福啊，Hedy。',actors:[['猪头',47],['Hedy',51]],heart:true},
-  {ch:'第二日',title:'一顿下午才吃上的午饭',scene:'loft',who:'旁白',text:'7月12日。杭州小笼包、买菜、洗菜、切菜……原本的午饭，一直做到下午四五点。',actors:[['猪头',33],['Hedy',58]]},
-  {scene:'loft',who:'Hedy',text:'终于可以吃饭啦。',choice:['把最后一道菜端上桌'],actors:[['猪头',35],['Hedy',57]]},
-  {scene:'loft',who:'旁白',text:'他们选了《这个杀手不太冷静》的日本原版。看到后半程，电影已经没有两个人重要。',actors:[['猪头',43],['Hedy',52]]},
-  {scene:'loft',who:'旁白',text:'一起做猪鼻子，拍了很多拍立得。天色越来越晚，谁都没有先说该走了。',actors:[['猪头',43],['Hedy',52]]},
-  {ch:'第三日',title:'大风车与告白',scene:'jingshan',who:'旁白',text:'7月13日。景山、歪脖子树、山顶的风。树早已不是当年的树，人们却仍记得它曾经站在这里。',actors:[['猪头',36],['Hedy',57]]},
-  {scene:'jingshan',who:'猪头',text:'那首歌叫什么来着？',actors:[['猪头',38],['Hedy',56]]},
-  {scene:'jingshan',who:'Hedy',text:'大风车吱呀吱悠悠地转……',actors:[['猪头',40],['Hedy',54]]},
-  {scene:'nightwalk',who:'旁白',text:'王府井的茶餐厅，长安街的夜风。Hedy忽然反应过来：',actors:[['猪头',41],['Hedy',55]]},
-  {scene:'nightwalk',who:'Hedy',text:'你还没有给我表白。',actors:[['猪头',41],['Hedy',55]]},
-  {scene:'nightwalk',who:'猪头',text:'不是你给我表的白吗？',actors:[['猪头',41],['Hedy',55]]},
-  {scene:'nightwalk',who:'旁白',text:'他只是在逗她，却碰到了她曾经的不安。他马上解释：不是不愿意说，而是不想轻易地说。',actors:[['猪头',43],['Hedy',54]]},
-  {scene:'subway-night',who:'猪头',text:'第一天是在逗你。我想把这句话留到最后，认真告诉你。',actors:[['猪头',44],['Hedy',55]]},
-  {scene:'subway-night',who:'旁白',text:'人流不断经过。他抱着她，认真说出了那句告白。她落泪了，他能感受到怀里的人身体一点点变暖。',actors:[['猪头',48],['Hedy',52]],action:'warm-hug',heart:true},
-  {scene:'subway-night',who:'旁白',text:'2022.07.14 · 从这一天开始，他们不再是两条毫无关系的轨道。',actors:[['猪头',48],['Hedy',52]],heart:true},
-  {ch:'第四日',title:'两瓶长白雪',scene:'hotel',who:'旁白',text:'7月14日。本来是离开的日子，Hedy却一早来到酒店，还带来了两瓶水。',actors:[['猪头',38],['Hedy',57]]},
-  {scene:'hotel',who:'猪头 · 心里',text:'酒店明明有水啊，笨蛋。',actors:[['猪头',40],['Hedy',55]]},
-  {scene:'hotel',who:'猪头 · 心里',text:'但她带来的不一样。',actors:[['猪头',42],['Hedy',53]],heart:true},
-  {scene:'hotel',who:'旁白',text:'她爸爸打来电话，问她一大早去了哪里。她慌张地说：“陪同学。”',actors:[['猪头',42],['Hedy',53]]},
-  {scene:'airport',who:'旁白',text:'下午五点的飞机飞往深圳。两个人一再拖延，最后还是到了不得不分开的时间。',actors:[['猪头',28],['Hedy',65]]},
-  {scene:'map-end',who:'旁白',text:'北京篇结束。地图上两个人再次分开，但这一次，两条路线之间已经有了一条不会消失的红线。',actors:[['猪头',25],['Hedy',75]],heart:true},
-  {scene:'note',who:'Hedy的纸条',text:'“在两个毫不相干的时空中，朝着对方的轨道不断奔跑，就觉得好神奇呢……”',choice:['完成北京篇'],actors:[['猪头',38],['Hedy',61]]}
-];
+function drawMap(name){
+  state.map=name;const m=maps[name];$('#chapterName').textContent=m.name;$('#chapterDate').textContent=m.date;
+  $('#tiles').innerHTML=m.tiles.flatMap((row,y)=>row.map((t,x)=>`<i class="tile ${t}" data-x="${x}" data-y="${y}"></i>`)).join('');
+  $('#props').innerHTML=m.props.map(([v,x,y,c=''])=>`<i class="prop ${c}" style="left:${x*TILE}px;top:${y*TILE}px">${v}</i>`).join('');
+  const [hx,hy]=m.hedy;$('#npcs').innerHTML=`<div id="hedy" class="actor hedy" style="left:${hx*TILE}px;top:${hy*TILE}px"><span class="shadow"></span></div>`;
+  [state.x,state.y]=m.start;state.locked=false;state.follow=name==='park';placeActors();
+  if(name==='subway'){setObjective(state.stage<2?'找到 Hedy':'从右上角出口前往日坛公园')}else setObjective(['和 Hedy 一起散步','主动牵住她的手','到长椅坐一会儿','前往小土坡'][Math.min(state.parkStage,3)]);
+  camera();closeOverlay('mapOverlay');
+}
+function placeActors(){
+  const p=$('#player');p.style.left=`${state.x*TILE}px`;p.style.top=`${state.y*TILE}px`;
+  if(state.follow&&$('#hedy')){const hx=Math.max(1,state.x-1),hy=state.y;$('#hedy').style.left=`${hx*TILE}px`;$('#hedy').style.top=`${hy*TILE}px`}
+}
+function camera(){
+  const vp=$('#viewport'),world=$('#world');const scale=Math.max(1,Math.min(1.45,vp.clientHeight/384));
+  const px=state.x*TILE*scale,py=state.y*TILE*scale;const maxX=Math.max(0,W*TILE*scale-vp.clientWidth),maxY=Math.max(0,H*TILE*scale-vp.clientHeight);
+  const cx=Math.max(0,Math.min(maxX,px-vp.clientWidth/2)),cy=Math.max(0,Math.min(maxY,py-vp.clientHeight/2));world.style.transform=`translate(${-cx}px,${-cy}px) scale(${scale})`;
+}
+function canMove(x,y){if(x<0||y<2||x>=W||y>=H)return false;if(state.map==='subway'&&y>=9)return false;return !blocked[state.map].has(`${x},${y}`)}
+function move(dir){if(state.locked)return;const d={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]}[dir];const nx=state.x+d[0],ny=state.y+d[1];if(!canMove(nx,ny))return;
+  const p=$('#player');p.classList.toggle('face-left',dir==='left');p.classList.toggle('walk-right',dir!=='up'&&dir!=='down');state.x=nx;state.y=ny;placeActors();camera();checkNearby();clearTimeout(holdTimer);holdTimer=setTimeout(()=>p.classList.remove('walk-right'),180);
+}
+function dist(x,y){return Math.abs(state.x-x)+Math.abs(state.y-y)}
+function checkNearby(){let text='';
+  if(state.map==='subway'){if(state.stage<2&&dist(13,5)<=2)text='和 Hedy 说话';else if(state.stage>=2&&state.x>=15&&state.y<=4)text='前往日坛公园'}
+  else{if(state.parkStage===0&&state.x>=4)text='牵住 Hedy';if(state.parkStage===1&&dist(8,4)<=2)text='在长椅休息';if(state.parkStage>=2&&dist(14,3)<=2)text='走上小土坡'}
+  $('#interactBtn').hidden=!text;$('#interactBtn').textContent=text||'互动';
+}
+function interact(){if(state.locked)return;
+  if(state.map==='subway'){
+    if(state.stage<2&&dist(13,5)<=2)return subwayMeeting();
+    if(state.stage>=2&&state.x>=15&&state.y<=4){state.unlockedPark=true;localStorage.setItem('bj-park-unlocked','1');$('#parkMapButton').disabled=false;return transition('从地铁站出来后，他们穿过使馆聚集的街道，向日坛公园走去。',()=>drawMap('park'))}
+    return bubble('猪头','再往前走走，她应该就在站台那边。');
+  }
+  if(state.parkStage===0&&state.x>=4)return handhold();
+  if(state.parkStage===1&&dist(8,4)<=2)return benchScene();
+  if(state.parkStage>=2&&dist(14,3)<=2)return kissScene();
+  bubble('Hedy','我们再到前面看看吧。');
+}
+function subwayMeeting(){
+  if(state.stage===0){state.stage=1;state.locked=true;bubble('猪头','真人比照片好看。',()=>bubble('Hedy','你一直看我干嘛呀？',()=>{bubble('猪头','我们之前打过赌。你要主动抱我。',()=>{state.locked=false;setObjective('让 Hedy 履行拥抱赌约')})}))}
+  else{state.stage=2;actionAt('shy-hug',13,5);bubble('猪头','什么时候抱我？愿赌服输，不许耍赖。',()=>transition('两个人一边催、一边不好意思地笑。最后，她在地铁站的角落浅浅抱了他一下。很短，但赌约兑现了。',()=>{endAction();setObjective('从右上角出口前往日坛公园');heartBurst(13,5)}))}
+}
+function handhold(){state.parkStage=1;actionAt('hold',state.x,state.y);bubble('猪头','手给我。',()=>bubble('Hedy','好呀。',()=>transition('这是猪头第一次主动牵起 Hedy 的手。公园里的路忽然变得很长，也很短。',()=>{endAction();state.follow=true;setObjective('到长椅坐一会儿');heartBurst(state.x,state.y)})))}
+function benchScene(){state.parkStage=2;state.locked=true;actionAt('hold',8,4);bubble('Hedy','看看宝宝。',()=>bubble('猪头','在看。',()=>bubble('Hedy','再拍一个。',()=>transition('他们在长椅上休息，拍了很多短短的视频。镜头晃来晃去，又总会回到彼此身上。',()=>{endAction();state.locked=false;setObjective('前往右上方的小土坡')}))))}
+function kissScene(){if(state.parkStage>2)return;state.parkStage=3;state.locked=true;actionAt('kiss',14,3);bubble('猪头','之前另一个赌约，也该履行了。',()=>bubble('Hedy','那你闭眼。',()=>transition('小土坡上，Hedy 主动吻了他。那一刻，两个人幸福得有些头晕目眩。',()=>{bubble('猪头','我现在好幸福啊，Hedy。',()=>{heartBurst(14,3);setTimeout(()=>{$('#completeOverlay').hidden=false;state.locked=false},900)})})))}
+function actionAt(type,x,y){state.locked=true;$('#player').hidden=true;$('#hedy').hidden=true;const a=$('#actionScene');a.hidden=false;a.className=`action-scene ${type}`;a.style.left=`${x*TILE}px`;a.style.top=`${y*TILE}px`}
+function endAction(){state.locked=false;$('#actionScene').hidden=true;$('#player').hidden=false;$('#hedy').hidden=false;placeActors()}
+function bubble(who,text,next){const target=who==='Hedy'?$('#hedy'):$('#player');const layer=$('#speechLayer');layer.innerHTML='';const b=document.createElement('div');b.className='bubble';b.innerHTML=`<b>${who}</b><br>${text}`;layer.appendChild(b);const r=target.getBoundingClientRect(),v=$('#viewport').getBoundingClientRect();b.style.left=`${Math.max(8,Math.min(v.width-b.offsetWidth-8,r.left-v.left-30))}px`;b.style.top=`${Math.max(55,r.top-v.top-75)}px`;setTimeout(()=>{layer.innerHTML='';if(next)next()},1900)}
+function transition(text,next){state.locked=true;$('#narratorText').textContent=text;$('#narrator').hidden=false;$('#narrator').onclick=()=>{$('#narrator').hidden=true;$('#narrator').onclick=null;state.locked=false;if(next)next()}}
+function heartBurst(x,y){for(let i=0;i<6;i++){const h=document.createElement('i');h.className='heart-particle';h.textContent='♥';h.style.left=`${x*TILE+10+(i%3)*9}px`;h.style.top=`${y*TILE-10}px`;h.style.animationDelay=`${i*.1}s`;$('#world').appendChild(h);setTimeout(()=>h.remove(),1600)}}
+function setObjective(t){$('#objectiveText').textContent=t}
+function closeOverlay(id){$('#'+id).hidden=true}
 
-let index = Number(localStorage.getItem('bj-memory-index') || 0), locked = false;
-const sceneClass = {map:'map-scene',phone:'map-scene',quiz:'map-scene','map-heart':'map-scene','rain-call':'map-scene','map-route':'map-scene',ticket:'map-scene',arrival:'subway-scene',subway:'subway-scene','subway-hug':'subway-scene',park:'park-scene','park-kiss':'park-scene',loft:'loft-scene',jingshan:'park-scene',nightwalk:'night-scene','subway-night':'night-scene',hotel:'loft-scene',airport:'map-scene','map-end':'map-scene',note:'map-scene'};
-function sprite(name,left,walking){return `<div class="sprite ${name==='Hedy'?'hedy':''} ${walking?'walking':''}" style="left:${left}%"><span class="name-tag">${name}</span></div>`}
-function renderScene(m){
-  scene.className='scene '+(sceneClass[m.scene]||'map-scene'); sky.className='sky';
-  if(m.scene==='rain-call') sky.classList.add('rain'); if(['nightwalk','subway-night','map-end','note'].includes(m.scene)) sky.classList.add('night');
-  const walking=['map-route','park','jingshan','nightwalk','airport'].includes(m.scene) && !m.action;
-  sprites.innerHTML=m.action?`<div class="couple-sprite ${m.action}"><span class="name-tag">猪头 × Hedy</span></div>`:(m.actors||[]).map(a=>sprite(a[0],a[1],walking)).join('');
-  const extra=[];
-  if(m.scene.includes('map')||m.scene==='phone'||m.scene==='quiz'||m.scene==='ticket'||m.scene==='airport'||m.scene==='note'){
-    extra.push('<span class="city" style="left:19%;top:31%">上海</span><span class="city" style="left:33%;top:58%">南昌</span><span class="city" style="left:66%;top:21%">北京</span><span class="city" style="left:72%;top:42%">天津</span>');
-    extra.push('<i class="route" style="left:29%;top:46%;width:42%;transform:rotate(-17deg)"></i>');
-  }
-  if(m.scene==='loft'||m.scene==='hotel') extra.push('<i class="heart" style="left:68%;top:35%">♡</i>');
-  if(m.heart) extra.push('<i class="heart" style="left:50%;top:34%">♥</i>');
-  if(m.prop==='phone') extra.push('<i class="scene-prop phone">▣</i>');
-  scene.innerHTML=extra.join('');
-}
-function showMoment(i){
-  index=Math.max(0,Math.min(i,moments.length-1)); const m=moments[index];
-  if(m.ch){chapterKicker.textContent=m.ch;chapterTitle.textContent=m.title}
-  speaker.textContent=m.who; line.textContent=m.text; fill.style.width=`${(index+1)/moments.length*100}%`; choices.innerHTML='';
-  renderScene(m); locked=!!m.choice;
-  const isNarration=m.who==='旁白'||m.who==='系统'||m.who==='Hedy的纸条';
-  $('.story-ui').classList.toggle('character-mode',!isNarration);
-  if(!isNarration){
-    const bubble=document.createElement('div');
-    const isHedy=m.who.startsWith('Hedy');
-    bubble.className=`speech-bubble ${m.action?'couple':isHedy?'hedy':'pig'} ${m.who.includes('心里')?'thought':''}`;
-    bubble.textContent=m.text; sprites.appendChild(bubble);
-  }
-  $('#dayLabel').textContent=m.ch||chapterKicker.textContent;
-  if(m.choice){(Array.isArray(m.choice)?m.choice:[m.choice]).forEach(c=>{const b=document.createElement('button');b.textContent=c;b.onclick=()=>{locked=false;next()};choices.appendChild(b)})}
-  if(m.photo){const hot=document.createElement('button');hot.className='hotspot';hot.style.cssText='right:8%;top:16%';hot.title='查看真实回忆';hot.onclick=(e)=>{e.stopPropagation();openMemory(m.photo)};scene.appendChild(hot)}
-  localStorage.setItem('bj-memory-index',String(index)); buildMap();
-}
-function next(){if(locked)return;if(index===moments.length-1){$('#memoryUnlock').hidden=false;return}showMoment(index+1)}
-function openMemory(p){
-  memoryTitle.textContent=p[0]; memoryCaption.textContent=p[2];
-  const isVideo=p[3]==='video'; memoryImage.hidden=isVideo; memoryVideo.hidden=!isVideo;
-  videoPlaylist.innerHTML='';
-  if(isVideo){
-    const files=Array.isArray(p[1])?p[1]:[p[1]];
-    const play=(src,i)=>{memoryVideo.pause();memoryVideo.src=src;memoryVideo.currentTime=0;videoPlaylist.querySelectorAll('button').forEach((b,n)=>b.classList.toggle('active',n===i))};
-    files.forEach((src,i)=>{const b=document.createElement('button');b.textContent=`片段 ${i+1}`;b.onclick=()=>play(src,i);videoPlaylist.appendChild(b)});
-    play(files[0],0)
-  }else{memoryImage.src=p[1]}
-  memoryPanel.hidden=false
-}
-function buildMap(){const marks=[['序章',0],['7.11',moments.findIndex(m=>m.ch==='第一章')],['7.12',moments.findIndex(m=>m.ch==='第二日')],['7.13',moments.findIndex(m=>m.ch==='第三日')],['7.14',moments.findIndex(m=>m.ch==='第四日')]];$('#mapDays').innerHTML=marks.map(([d,i])=>`<button class="day-node ${index<i?'locked':''}" data-i="${i}" ${index<i?'disabled':''}><strong>${d}</strong>${moments[i].title||moments[i].text.slice(0,8)}</button>`).join('');document.querySelectorAll('.day-node:not(.locked)').forEach(b=>b.onclick=()=>{$('#chapterMap').hidden=true;showMoment(+b.dataset.i)})}
-dialogue.onclick=next; $('#screen').onclick=next; $('#startBtn').onclick=()=>{$('#titleCard').style.display='none';showMoment(index)}; $('#homeBtn').onclick=()=>{$('#chapterMap').hidden=false};$('#closeMap').onclick=()=>{$('#chapterMap').hidden=true};$('#closeMemory').onclick=()=>{memoryVideo.pause();memoryPanel.hidden=true};$('#collectMemory').onclick=()=>{$('#memoryUnlock').hidden=true;$('#polaroidSlot').textContent='▣';$('#chapterMap').hidden=false;localStorage.setItem('bj-polaroid-unlocked','1')};
-$('#soundBtn').onclick=(e)=>{e.currentTarget.textContent=e.currentTarget.textContent.includes('开')?'♪ 关':'♪ 开'};
-document.addEventListener('keydown',e=>{if(['ArrowRight',' ','Enter','d','D'].includes(e.key))next();if(['ArrowLeft','a','A'].includes(e.key))showMoment(index-1)});
-showMoment(index);
+$('#startBtn').onclick=()=>{$('#titleScreen').style.display='none';transition('2022年7月11日。猪头坐着地铁来到双井。越过人群，他终于要见到那个隔着屏幕聊了很久的人。',()=>drawMap('subway'))};
+$('#mapBtn').onclick=()=>{$('#parkMapButton').disabled=!state.unlockedPark;$('#mapOverlay').hidden=false};
+document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>closeOverlay(b.dataset.close));
+document.querySelectorAll('[data-map]').forEach(b=>b.onclick=()=>drawMap(b.dataset.map));
+$('#actionBtn').onclick=interact;$('#interactBtn').onclick=interact;$('#continueExplore').onclick=()=>{$('#completeOverlay').hidden=true;setObjective('自由探索日坛公园')};
+$('#soundBtn').onclick=e=>{e.currentTarget.classList.toggle('muted');e.currentTarget.textContent=e.currentTarget.classList.contains('muted')?'×':'♫'};
+document.querySelectorAll('[data-dir]').forEach(b=>{const go=e=>{e.preventDefault();move(b.dataset.dir)};b.addEventListener('pointerdown',go)});
+document.addEventListener('keydown',e=>{const d={ArrowUp:'up',w:'up',W:'up',ArrowDown:'down',s:'down',S:'down',ArrowLeft:'left',a:'left',A:'left',ArrowRight:'right',d:'right',D:'right'}[e.key];if(d){e.preventDefault();move(d)}if([' ','Enter','e','E'].includes(e.key)){e.preventDefault();interact()}});
+window.addEventListener('resize',camera);drawMap('subway');
