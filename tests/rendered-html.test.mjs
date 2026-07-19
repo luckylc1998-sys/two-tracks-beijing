@@ -45,6 +45,7 @@ test("includes the expanded three-map exploration slice", async () => {
   assert.match(js, /spriteLoader\.decoding='async'/);
   assert.match(js, /function solidCells\(\)/);
   assert.match(js, /function safePair\(gap=1\)/);
+  assert.match(js, /function stagePairOnClearGround\(\)/);
   assert.match(js, /setInterval\(\(\)=>move/);
   assert.match(js, /W=36,H=28/);
   assert.match(js, /function tileBlocked\(x,y\)/);
@@ -54,6 +55,7 @@ test("includes the expanded three-map exploration slice", async () => {
   assert.match(js, /REC 00:03/);
   assert.match(html, /id="photoFx"/);
   assert.match(html, /action-scene\.photo\{background-position:14\.286% 100%\}/);
+  assert.match(html, /sprites-ready \.action-scene::before/);
   assert.match(js, /function benchMasterScene\(\)/);
   assert.match(js, /北京民宿/);
   assert.match(js, /朝日坛/);
