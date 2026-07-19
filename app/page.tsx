@@ -8,7 +8,7 @@ export default function Home() {
     <main className="game-frame-shell">
       <iframe
         className="game-frame"
-        src="/game/index.html"
+        src="/game/index.html?v=3"
         title="两条轨道 · 北京篇"
         allow="autoplay; fullscreen"
       />

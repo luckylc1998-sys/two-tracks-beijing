@@ -21,10 +21,11 @@ test("renders the finished game shell", async () => {
 });
 
 test("includes the expanded three-map exploration slice", async () => {
-  const [html, css, js] = await Promise.all([
+  const [html, css, js, renderer] = await Promise.all([
     readFile(new URL("index.html", root), "utf8"),
     readFile(new URL("game.css", root), "utf8"),
     readFile(new URL("game.js", root), "utf8"),
+    readFile(new URL("render-system.css", root), "utf8"),
   ]);
   assert.match(html, /双井地铁站/);
   assert.match(html, /日坛公园/);
@@ -42,7 +43,8 @@ test("includes the expanded three-map exploration slice", async () => {
   assert.match(js, /function handhold\(\)/);
   assert.match(js, /function benchScene\(\)/);
   assert.match(js, /function kissScene\(\)/);
-  assert.match(js, /spriteLoader\.decoding='async'/);
+  assert.match(js, /function preloadImage\(src,readyClass\)/);
+  assert.match(js, /function prepareVisuals\(\)/);
   assert.match(js, /function solidCells\(\)/);
   assert.match(js, /function safePair\(gap=1\)/);
   assert.match(js, /function stagePairOnClearGround\(\)/);
@@ -72,6 +74,7 @@ test("includes the expanded three-map exploration slice", async () => {
   assert.match(js, /日坛公园 · 朝日坛古建区/);
   assert.match(js, /日坛公园 · 清晖观日/);
   assert.match(js, /function zoneShift\(name,entry\)/);
+  assert.match(js, /const mapFlow=/);
   assert.match(js, /vp\.clientWidth<760\?1\.18:1\.06/);
   assert.match(js, /宰牲亭/);
   assert.match(js, /曲池胜春/);
@@ -88,4 +91,11 @@ test("includes the expanded three-map exploration slice", async () => {
   assert.match(html, /beijing-subway-atlas\.webp/);
   assert.match(html, /beijing-home-atlas\.webp/);
   assert.match(html, /beijing-heritage-atlas\.webp/);
+  assert.match(html, /render-system\.css\?v=3/);
+  assert.match(js, /function footprintFor\(classes=''/);
+  assert.match(js, /ground-prop/);
+  assert.match(js, /action-scene action-/);
+  assert.match(renderer, /couple-sprites-v2\.webp/);
+  assert.match(renderer, /\.action-shy-hug/);
+  assert.match(renderer, /\.prop\.ground-prop/);
 });

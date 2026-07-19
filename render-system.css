@@ -1,0 +1,50 @@
+/* Stable renderer: one atlas, one footprint anchor, no runtime scale swap. */
+:root{--actor-w:100px;--actor-h:80px;--action-w:140px;--action-h:112px}
+.actor,.sprites-ready .actor{
+  width:var(--actor-w);height:var(--actor-h);margin-left:-34px;margin-top:-52px;
+  background-image:url('./public/couple-sprites-v2.webp');background-repeat:no-repeat;
+  background-size:800% 600%;transform-origin:50% 100%;scale:1;
+  overflow:visible;contain:layout paint;will-change:left,top,background-position;
+}
+.actor::before{display:none!important}.sprites-ready .actor::after{display:none!important}
+html:not(.sprites-ready) .actor{background-image:none}
+html:not(.sprites-ready) .actor::after{content:"";display:block!important;position:absolute;left:34px;bottom:9px;width:31px;height:56px;background:linear-gradient(#252630 0 22%,#efb68d 23% 43%,#f0eee8 44% 76%,#b49a73 77%);border:3px solid #35251f;clip-path:polygon(18% 0,82% 0,100% 16%,87% 52%,81% 100%,57% 100%,50% 72%,43% 100%,19% 100%,13% 52%,0 16%)}
+html:not(.sprites-ready) .actor.hedy::after{background:linear-gradient(#202229 0 29%,#efb68d 30% 46%,#292a32 47% 78%,#e7d7b1 79%)}
+.actor.face-left{transform:scaleX(-1);scale:1}.actor.walking{animation:actor-bob .26s steps(2) infinite}
+@keyframes actor-bob{50%{translate:0 -2px}}
+.action-scene,.sprites-ready .action-scene{
+  width:var(--action-w);height:var(--action-h);margin-left:-54px;margin-top:-78px;
+  background-image:url('./public/couple-sprites-v2.webp');background-repeat:no-repeat;
+  background-size:800% 600%;transform-origin:50% 100%;scale:1;translate:0 0;
+  overflow:hidden;contain:strict;filter:drop-shadow(3px 4px #33291f55);
+}
+.sprites-ready .action-scene::before,.sprites-ready .action-scene::after{display:none!important}
+html:not(.sprites-ready) .action-scene{background-image:none;overflow:visible}
+html:not(.sprites-ready) .action-scene::before,html:not(.sprites-ready) .action-scene::after{content:"";display:block!important;position:absolute;bottom:10px;width:36px;height:66px;border:3px solid #35251f}
+html:not(.sprites-ready) .action-scene::before{left:34px;background:linear-gradient(#20222a 0 22%,#efb98c 23% 42%,#ece9df 43% 74%,#b29a73 75%)}
+html:not(.sprites-ready) .action-scene::after{right:32px;background:linear-gradient(#20222a 0 30%,#efb98c 31% 47%,#242630 48% 78%,#e7d7b1 79%)}
+.action-scene.performing{animation:action-settle .24s steps(2)}
+@keyframes action-settle{from{opacity:.35;translate:0 3px}to{opacity:1;translate:0 0}}
+.action-shy-hug{background-position:0 60%}.action-warm-hug{background-position:14.286% 60%}
+.action-hold{background-position:28.571% 60%}.action-kiss{background-position:42.857% 60%}
+.action-photo{background-position:57.143% 60%}.action-selfie{background-position:71.429% 60%}
+.action-sit{background-position:85.714% 60%}.action-sit-video{background-position:100% 60%}
+.action-cook{background-position:0 80%}.action-carry-food{background-position:14.286% 80%}
+.action-sofa{background-position:28.571% 80%}.action-watch-movie{background-position:42.857% 80%}
+.action-pig-nose{background-position:57.143% 80%}.action-polaroid{background-position:71.429% 80%}
+.action-goodbye{background-position:85.714% 80%}.action-walk-apart{background-position:100% 80%}
+.action-cry{background-position:42.857% 100%}.action-comfort{background-position:57.143% 100%}
+.action-water-gift{background-position:71.429% 100%}.action-eat{background-position:85.714% 100%}
+.action-scenery{background-position:100% 100%}
+.prop{transform-origin:50% 100%;transition:filter .12s,opacity .12s}
+.prop.ground-prop{pointer-events:none;filter:none!important}
+.prop.foreground{filter:drop-shadow(4px 7px 0 #26351f55)}
+.prop.occluding{opacity:1!important}
+.scene-jingshan,.scene-changan,.scene-homestay,.scene-hotel,.scene-arrival{filter:none!important}
+@media(max-width:759px){
+  .topbar{padding-inline:6px}.chapter-sign{min-width:0;width:42%;padding-inline:4px}
+  .chapter-sign strong{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .memory-counter{left:60px;top:52px}.day-panel{right:60px;top:52px}
+  .objective{top:45px;max-width:82vw}.quickbar{bottom:104px}
+  .journal{max-height:88vh;overflow:auto}.route-list{padding-bottom:18px}
+}

@@ -55,20 +55,58 @@ const maps={
   hotel:{name:'第四天 · 酒店告别',date:'2022 · 07 · 14 · 清晨',start:[4,18],hedy:[6,18],tiles:grid(roomTiles),props:[['床',3,5,'hotel-bed solid mega-solid'],['沙发',16,6,'home-atlas hm-sofa solid large-solid'],['窗',26,3,'home-atlas hm-screen solid large-solid'],['长白雪',20,15,'water-bottles landmark'],['行李',28,17,'subway-atlas sm-mcd solid large-solid'],['告别',13,18,'goodbye-spot confession-spot']]}
 };
 
+const mapFlow={
+  park:{exits:[
+    {when:s=>s.x>=34&&s.y<=18,to:'ritanAltar',entry:[2,15]},
+    {when:s=>s.y>=26&&s.x>=12&&s.x<=22,to:'ritanWater',entry:[18,3]},
+    {when:s=>s.x>=34&&s.y>=19,to:'ritanHill',entry:[2,19]}
+  ]},
+  ritanAltar:{exits:[{when:s=>s.x<=1,to:'park',entry:[32,14]}]},
+  ritanWater:{exits:[{when:s=>s.y<=1,to:'park',entry:[18,24]}]},
+  ritanHill:{exits:[{when:s=>s.x<=1,to:'park',entry:[32,22]}]}
+};
+
 let holdTimer=null,walkTimer=null;
+const footprintRules=[
+  [/sm-ticket|sm-ticket-red|sm-pillar|sm-trash|atlas-lamp|street-lamp/,[-0,0,1,1]],
+  [/sm-turnstiles|sm-bench|atlas-bench|hm-coffee|h-stairs|h-wall/,[0,0,4,1]],
+  [/sm-escalator/,[0,-1,4,5]],
+  [/sm-platform-doors/,[0,0,15,2]],
+  [/hm-loft/,[0,0,10,4]],[/hm-tent/,[0,0,8,4]],[/hm-kitchen/,[0,0,6,3]],
+  [/hm-sofa|hm-table|restaurant-table|hotel-bed/,[0,0,5,2]],
+  [/atlas-tree|hm-plants|h-tree-memorial/,[0,0,2,1]],
+  [/atlas-pond/,[0,0,7,4]],[/h-water-pavilion|h-altar/,[0,0,7,3]],
+  [/h-shouhuang/,[0,0,9,3]],[/h-qiwang|h-wanchun/,[0,0,5,3]],
+  [/h-gate|h-hall|h-small-hall|h-garden-gate|h-south-gate/,[0,0,5,2]],
+  [/city-building/,[0,0,6,3]]
+];
+function footprintFor(classes=''){
+  const match=footprintRules.find(([pattern])=>pattern.test(classes));
+  if(match)return match[1];
+  if(classes.includes('mega-solid'))return[0,0,6,4];
+  if(classes.includes('large-solid'))return[0,0,3,2];
+  if(classes.includes('wide-solid'))return[0,0,2,1];
+  return[0,0,1,1];
+}
+function propMarkup([label,x,y,classes='']){
+  const [ox,oy,w,h]=footprintFor(classes);
+  const depth=y+oy+h;
+  const ground=/sm-tactile|floor-arrow|camera-spot|confession-spot|viewpoint|arrival-spot|dinner-spot|goodbye-spot/.test(classes);
+  return `<i class="prop ${classes}${ground?' ground-prop':''}" data-x="${x}" data-y="${y}" data-footprint="${ox},${oy},${w},${h}" style="left:${x*TILE}px;top:${y*TILE}px;--depth:${depth};z-index:${ground?12:60+depth*2}">${label}</i>`;
+}
 function drawMap(name,entry=null){
   state.map=name;const m=maps[name];$('#chapterName').textContent=m.name;$('#chapterDate').textContent=m.date;$('#viewport').className=`viewport scene-${name}`;
   const world=$('#world');world.style.width=`${W*TILE}px`;world.style.height=`${H*TILE}px`;
   $('#tiles').style.gridTemplateColumns=`repeat(${W},${TILE}px)`;$('#tiles').style.gridTemplateRows=`repeat(${H},${TILE}px)`;
   $('#tiles').innerHTML=m.tiles.flatMap((row,y)=>row.map((t,x)=>`<i class="tile ${t} v${(x*7+y*11)%4}" data-x="${x}" data-y="${y}"></i>`)).join('');
-  $('#props').innerHTML=m.props.map(([v,x,y,c=''])=>`<i class="prop ${c}" data-x="${x}" data-y="${y}" style="left:${x*TILE}px;top:${y*TILE}px;z-index:${20+y}">${v}</i>`).join('');
+  $('#props').innerHTML=m.props.map(propMarkup).join('');
   [state.x,state.y]=entry||m.start;[state.hx,state.hy]=entry?[Math.min(W-1,state.x+2),state.y]:m.hedy;$('#npcs').innerHTML=`<div id="hedy" class="actor hedy" aria-label="Hedy"><span class="npc-label">Hedy</span><span class="shadow"></span></div>`;
   state.steps=0;state.locked=false;state.follow=!['subway','arrival'].includes(name);$('#interactBtn').hidden=true;placeActors();setObjective(name==='subway'?'穿过站台找到 Hedy':name==='bench'?'沿石路找到那张长椅':name==='homestay'?'做饭、看电影并拍下拍立得':name.startsWith('ritan')||name==='park'?'沿真实园路探索日坛公园':name==='changan'?'走到人流中的那束灯光下':name==='hotel'?'看看 Hedy 带来的两瓶水':name==='jingshan'?'沿石阶登上万春亭':'寻找地图中发光的回忆点');camera();checkNearby();closeOverlay('mapOverlay');
 }
-function placeActors(){const p=$('#player'),h=$('#hedy');p.style.left=`${state.x*TILE}px`;p.style.top=`${state.y*TILE}px`;p.style.zIndex=String(40+state.y);if(h){h.style.left=`${state.hx*TILE}px`;h.style.top=`${state.hy*TILE}px`;h.style.zIndex=String(39+state.hy)}document.querySelectorAll('.prop').forEach(n=>n.classList.toggle('occluding',Math.abs(+n.dataset.x-state.x)<=2&&+n.dataset.y>state.y&&+n.dataset.y-state.y<=3))}
+function placeActors(){const p=$('#player'),h=$('#hedy');p.style.left=`${state.x*TILE}px`;p.style.top=`${state.y*TILE}px`;p.style.zIndex=String(61+state.y*2);if(h){h.style.left=`${state.hx*TILE}px`;h.style.top=`${state.hy*TILE}px`;h.style.zIndex=String(60+state.hy*2)}document.querySelectorAll('.prop').forEach(n=>{const depth=+getComputedStyle(n).getPropertyValue('--depth')||+n.dataset.y;n.classList.toggle('foreground',depth>state.y&&Math.abs(+n.dataset.x-state.x)<=4);n.classList.remove('occluding')})}
 function camera(){const vp=$('#viewport'),world=$('#world');const scale=vp.clientWidth<760?1.18:1.06;const px=state.x*TILE*scale,py=state.y*TILE*scale;const maxX=Math.max(0,W*TILE*scale-vp.clientWidth),maxY=Math.max(0,H*TILE*scale-vp.clientHeight);const cx=Math.max(0,Math.min(maxX,px-vp.clientWidth*.5)),cy=Math.max(0,Math.min(maxY,py-vp.clientHeight*.48));world.style.transform=`translate3d(${-cx}px,${-cy}px,0) scale(${scale})`}
 function zoneShift(name,entry){if(state.locked)return;state.locked=true;$('#world').classList.add('zone-fade');setTimeout(()=>{drawMap(name,entry);requestAnimationFrame(()=>$('#world').classList.remove('zone-fade'))},180)}
-function solidCells(){const cells=new Set();for(const[,x,y,c='']of maps[state.map].props){if(!c.includes('solid'))continue;let w=c.includes('wide-solid')?2:1,h=1;if(c.includes('pond-wide')){w=5;h=3}if(c.includes('large-solid')||c.includes('ritual-hall')||c.includes('small-pagoda')){w=3;h=2}if(c.includes('mega-solid')){w=6;h=4}if(c.includes('sun-altar')||c.includes('qiwang-hall')||c.includes('pagoda')){w=4;h=3}if(c.includes('shouhuang-hall')){w=5;h=3}for(let dx=0;dx<w;dx++)for(let dy=0;dy<h;dy++)cells.add(key(x+dx,y+dy))}return cells}
+function solidCells(){const cells=new Set();for(const[,x,y,c='']of maps[state.map].props){if(!c.includes('solid'))continue;const[ox,oy,w,h]=footprintFor(c);for(let dx=0;dx<w;dx++)for(let dy=0;dy<h;dy++)cells.add(key(x+ox+dx,y+oy+dy))}return cells}
 function tileBlocked(x,y){const t=maps[state.map].tiles[y]?.[x];return!t||['track','water','sky','cliff'].includes(t)}
 function canMove(x,y,ignoreHedy=false){return x>=0&&y>=0&&x<W&&y<H&&!tileBlocked(x,y)&&!solidCells().has(key(x,y))&&(ignoreHedy||x!==state.hx||y!==state.hy)}
 function move(dir){if(state.locked)return;const d={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]}[dir];const nx=state.x+d[0],ny=state.y+d[1];state.facing=dir;const p=$('#player');p.classList.toggle('face-left',dir==='left');if(!canMove(nx,ny)){bump();return}const old=[state.x,state.y];state.x=nx;state.y=ny;state.steps++;p.classList.add('walking');if(state.follow&&canMove(old[0],old[1],true)){state.hx=old[0];state.hy=old[1]}placeActors();camera();checkNearby();checkAutoEvent();clearTimeout(walkTimer);walkTimer=setTimeout(()=>p.classList.remove('walking'),160)}
@@ -78,12 +116,8 @@ function nearProp(selector,r=2){const nearby=[...document.querySelectorAll(selec
 function inArea(x1,y1,x2,y2){return state.x>=x1&&state.x<=x2&&state.y>=y1&&state.y<=y2}
 function checkAutoEvent(){
   if(state.locked)return;
-  if(state.map==='park'&&state.x>=34&&state.y<=18)return zoneShift('ritanAltar',[2,15]);
-  if(state.map==='park'&&state.y>=26&&state.x>=12&&state.x<=22)return zoneShift('ritanWater',[18,3]);
-  if(state.map==='park'&&state.x>=34&&state.y>=19)return zoneShift('ritanHill',[2,19]);
-  if(state.map==='ritanAltar'&&state.x<=1)return zoneShift('park',[32,14]);
-  if(state.map==='ritanWater'&&state.y<=1)return zoneShift('park',[18,24]);
-  if(state.map==='ritanHill'&&state.x<=1)return zoneShift('park',[32,22]);
+  const exit=mapFlow[state.map]?.exits?.find(route=>route.when(state));
+  if(exit)return zoneShift(exit.to,exit.entry);
   if(state.map==='ritanAltar'&&inArea(12,8,22,17)&&!state.events.has('ritan-altar'))return photoMoment('ritan-altar','朝日坛打卡','站到坛门前时，两个人很自然地停了下来。Hedy 举起手机，他们靠近一点，留下了日坛公园的第一张合照。');
   if(state.map==='park'&&inArea(11,12,16,16)&&!state.events.has('ritan-video'))return photoMoment('ritan-video','长椅视频','他们在树荫下坐下。Hedy 一会儿把镜头转向猪头，一会儿又凑到镜头里，拍下很多短短的视频。');
   if(state.map==='bench'&&inArea(10,10,16,14)&&!state.events.has('bench-master'))return benchMasterScene();
@@ -104,7 +138,7 @@ function stagePairOnClearGround(){const solids=solidCells(),origin=[Math.round((
 function pairAction(type,line,narration,done){stagePairOnClearGround();state.locked=true;const cx=(state.x+state.hx)/2,cy=Math.max(state.y,state.hy);$('#player').classList.add('approaching');$('#hedy').classList.add('approaching');setTimeout(()=>{actionAt(type,cx,cy);bubble('猪头',line,()=>transition(narration,()=>{endAction();heartBurst(cx,cy);done?.()}))},420)}
 function scriptedAction(type,narration,id,done){stagePairOnClearGround();state.locked=true;const cx=(state.x+state.hx)/2,cy=Math.max(state.y,state.hy);actionAt(type,cx,cy);setTimeout(()=>transition(narration,()=>{unlockMemory(id);endAction();heartBurst(cx,cy);done?.()}),1500)}
 function confessionScene(){if(state.events.has('formal-confession'))return;state.events.add('formal-confession');stagePairOnClearGround();state.locked=true;bubble('Hedy','你还没有好好跟我表白。',()=>bubble('猪头','Hedy，我喜欢你。不是玩笑，也不是让你先说。',()=>{const cx=(state.x+state.hx)/2,cy=Math.max(state.y,state.hy);actionAt('warm-hug',cx,cy);playSfx('heart');setTimeout(()=>transition('人流从身边经过。他抱住落泪的 Hedy，能感觉到她的身体一点点变暖。',()=>{unlockMemory('formal-confession');endAction();heartBurst(cx,cy);setObjective('北京篇的最后一天已经解锁')}),1600)}))}
-function actionAt(type,x,y){$('#player').hidden=true;$('#hedy').hidden=true;const a=$('#actionScene');a.hidden=false;a.className=`action-scene ${type}`;a.style.left=`${x*TILE}px`;a.style.top=`${y*TILE}px`;a.style.zIndex=String(55+y);requestAnimationFrame(()=>a.classList.add('performing'))}
+function actionAt(type,x,y){$('#player').hidden=true;$('#hedy').hidden=true;const a=$('#actionScene');a.hidden=false;a.className=`action-scene action-${type}`;a.dataset.action=type;a.style.left=`${x*TILE}px`;a.style.top=`${y*TILE}px`;a.style.zIndex=String(61+Math.round(y)*2);requestAnimationFrame(()=>a.classList.add('performing'))}
 function endAction(){state.locked=false;$('#actionScene').hidden=true;$('#photoFx').hidden=true;$('#player').hidden=false;$('#hedy').hidden=false;$('#player').classList.remove('approaching');$('#hedy').classList.remove('approaching');placeActors();checkNearby()}
 function bubble(who,text,next){const target=who==='Hedy'?$('#hedy'):$('#player'),layer=$('#speechLayer');layer.innerHTML='';const b=document.createElement('div');b.className='bubble';b.innerHTML=`<b>${who}</b><br>${text}`;layer.appendChild(b);const r=target.getBoundingClientRect(),v=$('#viewport').getBoundingClientRect();b.style.left=`${Math.max(8,Math.min(v.width-b.offsetWidth-8,r.left-v.left-35))}px`;b.style.top=`${Math.max(62,r.top-v.top-78)}px`;setTimeout(()=>{layer.innerHTML='';next?.()},1900)}
 function transition(text,next){state.locked=true;$('#narratorText').textContent=text;$('#narrator').hidden=false;$('#narrator').onclick=()=>{$('#narrator').hidden=true;$('#narrator').onclick=null;state.locked=false;next?.()}}
@@ -121,6 +155,17 @@ $('#soundBtn').onclick=e=>{e.currentTarget.classList.toggle('muted');e.currentTa
 document.querySelectorAll('[data-dir]').forEach(b=>{let repeat;const stop=()=>{clearInterval(repeat);repeat=null};b.addEventListener('pointerdown',e=>{e.preventDefault();b.setPointerCapture?.(e.pointerId);move(b.dataset.dir);stop();repeat=setInterval(()=>move(b.dataset.dir),135)});['pointerup','pointercancel','pointerleave'].forEach(n=>b.addEventListener(n,stop))});
 document.addEventListener('keydown',e=>{const d={ArrowUp:'up',w:'up',W:'up',ArrowDown:'down',s:'down',S:'down',ArrowLeft:'left',a:'left',A:'left',ArrowRight:'right',d:'right',D:'right'}[e.key];if(d){e.preventDefault();move(d)}if([' ','Enter','e','E'].includes(e.key)){e.preventDefault();interact()}});window.addEventListener('resize',camera);
 
-// Never gate the game on a large image: CSS avatars are the instant fallback.
-$('#startBtn').disabled=false;$('#startBtn').textContent='戴上耳机 · 进入回忆';drawMap('subway');
-updateMemoryCount();const spriteLoader=new Image();spriteLoader.decoding='async';spriteLoader.onload=()=>{state.sprites=true;document.documentElement.classList.add('sprites-ready')};spriteLoader.onerror=()=>document.documentElement.classList.add('sprites-fallback');spriteLoader.src='./public/couple-sprites-v2.webp';
+// Start with CSS avatars, then promote each visual layer independently as it becomes ready.
+function preloadImage(src,readyClass){return new Promise(resolve=>{const img=new Image();img.decoding='async';const done=ok=>{document.documentElement.classList.add(ok?readyClass:`${readyClass}-fallback`);resolve(ok)};img.onload=()=>{img.decode?.().catch(()=>{}).finally(()=>done(true))};img.onerror=()=>done(false);img.src=src})}
+async function prepareVisuals(){
+  $('#startBtn').disabled=false;$('#startBtn').textContent='戴上耳机 · 进入回忆';
+  const sprite=preloadImage('./public/couple-sprites-v2.webp','sprites-ready').then(ok=>{state.sprites=ok});
+  const subway=preloadImage('./public/beijing-subway-atlas.webp','subway-ready');
+  (window.requestIdleCallback||window.setTimeout)(()=>Promise.allSettled([
+    preloadImage('./public/ritan-bench-atlas-mobile.webp','park-ready'),
+    preloadImage('./public/beijing-heritage-atlas.webp','heritage-ready'),
+    preloadImage('./public/beijing-home-atlas.webp','home-ready')
+  ]),300);
+  await Promise.allSettled([sprite,subway]);
+}
+drawMap('subway');updateMemoryCount();prepareVisuals();
