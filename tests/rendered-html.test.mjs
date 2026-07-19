@@ -46,13 +46,18 @@ test("includes the expanded three-map exploration slice", async () => {
   assert.match(js, /function solidCells\(\)/);
   assert.match(js, /function safePair\(gap=1\)/);
   assert.match(js, /setInterval\(\(\)=>move/);
-  assert.match(js, /W=30,H=22/);
+  assert.match(js, /W=36,H=28/);
   assert.match(js, /function tileBlocked\(x,y\)/);
   assert.match(js, /function checkAutoEvent\(\)/);
   assert.match(js, /function photoMoment\(id,title,narration\)/);
   assert.match(js, /function benchMasterScene\(\)/);
   assert.match(js, /北京民宿/);
   assert.match(js, /朝日坛/);
+  assert.match(js, /日坛公园 · 完整园区/);
+  assert.match(js, /宰牲亭/);
+  assert.match(js, /曲池胜春/);
+  assert.match(js, /玉馨园/);
+  assert.match(js, /牡丹园/);
   assert.match(js, /周赏亭/);
   assert.match(js, /寿皇殿/);
   assert.match(js, /7号线换乘厅/);
@@ -61,4 +66,7 @@ test("includes the expanded three-map exploration slice", async () => {
   assert.match(html, /prop\.pagoda/);
   assert.match(html, /class="quickbar"/);
   assert.match(html, /ritan-bench-atlas-mobile\.webp/);
+  assert.match(html, /beijing-subway-atlas\.webp/);
+  assert.match(html, /beijing-home-atlas\.webp/);
+  assert.match(html, /beijing-heritage-atlas\.webp/);
 });

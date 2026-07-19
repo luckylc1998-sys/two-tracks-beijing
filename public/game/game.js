@@ -1,49 +1,47 @@
 const $=s=>document.querySelector(s);
-const TILE=32,W=30,H=22;
+const TILE=32,W=36,H=28;
 const key=(x,y)=>`${x},${y}`;
 const state={map:'subway',x:3,y:17,hx:21,hy:10,steps:0,facing:'right',stage:0,parkStage:0,jingStage:0,locked:false,follow:false,sprites:false,events:new Set(),unlockedPark:localStorage.getItem('bj-park-unlocked')==='1',unlockedJing:localStorage.getItem('bj-jing-unlocked')==='1'};
 
 function grid(fn){return Array.from({length:H},(_,y)=>Array.from({length:W},(_,x)=>fn(x,y)))}
 function subwayTiles(x,y){if(y<4)return'wall';if(y>18)return'track';if(y===18)return'edge';return'platform'}
 function parkTiles(x,y){
-  if((x>=1&&x<=27&&y>=9&&y<=12)||(x>=15&&x<=18&&y>=2&&y<=20)||(x>=5&&x<=9&&y>=4&&y<=18)||(x>=10&&x<=25&&y>=16&&y<=19))return'path';
-  if(x>=2&&x<=10&&y>=13&&y<=17)return'water';
-  if(x>=22&&y>=13)return'hill';return'grass';
+  if((x>=1&&x<=34&&y>=12&&y<=15)||(x>=17&&x<=20&&y>=2&&y<=26)||(x>=6&&x<=10&&y>=4&&y<=25)||(x>=9&&x<=29&&y>=21&&y<=24))return'cobble';
+  if(x>=2&&x<=11&&y>=17&&y<=22)return'water';
+  if(x>=27&&y>=17)return'hill';return'grass-rich';
 }
 function benchTiles(x,y){
-  if((x>=2&&x<=27&&y>=9&&y<=14)||(x>=12&&x<=17&&y>=3&&y<=19))return'cobble';
-  if(x>=22&&x<=28&&y>=2&&y<=8)return'water';
+  if((x>=2&&x<=33&&y>=11&&y<=16)||(x>=15&&x<=20&&y>=3&&y<=25))return'cobble';
+  if(x>=27&&x<=34&&y>=2&&y<=9)return'water';
   return'grass-rich';
 }
 function homeTiles(x,y){return y<3?'home-wall':x>20?'kitchen-floor':'wood-floor'}
 function jingTiles(x,y){
   if(y<4)return'sky';
-  const ridge=Math.abs(x-15);if(y<7+Math.floor(ridge/5))return'cliff';
-  if((x>=13&&x<=17)||(y>=15&&y<=18)||(x>=4&&x<=25&&y>=9&&y<=11))return'stonepath';
+  const ridge=Math.abs(x-18);if(y<7+Math.floor(ridge/6))return'cliff';
+  if((x>=16&&x<=20)||(y>=19&&y<=22)||(x>=4&&x<=32&&y>=9&&y<=12))return'stonepath';
   return y<14?'hill':'grass';
 }
 const trees=(points,type='tree oak solid')=>points.map(([x,y])=>['',x,y,type]);
 const maps={
   subway:{name:'双井地铁站',date:'2022 · 07 · 11 · 上午',start:[3,17],hedy:[21,10],tiles:grid(subwayTiles),props:[
-    ...[1,6,12,18,24,29].map(x=>['',x,4,'pillar solid tall']),['10号线·双井站',3,3,'sign station'],['7号线换乘厅 →',19,3,'sign station transfer-sign'],['',2,5,'metro'],['',8,5,'routeboard'],['',17,5,'routeboard'],['出口 A',26,4,'sign exit-sign'],['',27,6,'exit-arrow'],['',24,8,'escalator solid wide-solid'],['',15,8,'turnstiles solid wide-solid'],['换乘通道',19,7,'transfer-corridor landmark solid large-solid'],
-    ['',5,15,'bench subway-bench solid wide-solid'],['',14,15,'bench subway-bench solid wide-solid'],['',23,15,'bench subway-bench solid wide-solid'],['',9,10,'ticket-machine solid'],['',10,10,'ticket-machine red solid'],['',18,13,'trash solid'],
-    ...[0,6,12,18,24].map(x=>['',x,18,'safety-rail wide-solid']),...[[4,8],[13,12],[22,8]].map(([x,y])=>['',x,y,'floor-arrow']),...[[7,7],[16,7],[25,7]].map(([x,y])=>['',x,y,'ceiling-light'])]},
-  park:{name:'日坛公园',date:'2022 · 07 · 11 · 下午',start:[2,11],hedy:[4,11],tiles:grid(parkTiles),props:[
-    ['西门',1,10,'arch west-gate landmark solid wide-solid'],['北天门',15,2,'arch north-gate landmark solid wide-solid'],['西天门',11,9,'arch landmark solid wide-solid'],['朝日坛',20,7,'sun-altar landmark solid wide-solid'],['神库',21,3,'ritual-hall landmark solid wide-solid'],['神厨',24,3,'ritual-hall landmark solid wide-solid'],['具服殿',17,3,'ritual-hall landmark solid wide-solid'],['祭日壁画',27,9,'mural landmark solid'],['小土坡',25,14,'hill-marker landmark solid'],
-    ['',3,13,'pond pond-large solid pond-wide'],['',7,15,'lotus'],['',7,10,'bench park-bench solid wide-solid'],['',14,12,'bench park-bench solid wide-solid'],['',12,18,'bench park-bench solid wide-solid'],
-    ...trees([[1,3],[4,4],[8,2],[11,6],[18,3],[27,8],[2,18],[11,19],[19,17],[28,19]],'tree oak big solid'),...trees([[5,7],[18,8],[24,9],[4,15]],'tree willow solid'),
-    ...[[6,6],[9,16],[17,6],[20,14],[27,12]].map(([x,y])=>['',x,y,'flowerbed pink wide-solid']),...[[12,8],[17,13],[24,17]].map(([x,y])=>['',x,y,'flowerbed yellow wide-solid']),
-    ...[[10,10],[14,10],[10,17],[20,12],[23,12]].map(([x,y])=>['',x,y,'lamp solid']),['曲池胜春',10,15,'pavilion curve-pavilion landmark solid wide-solid'],['',22,8,'altar-wall solid wide-solid'],['',24,8,'altar-wall solid wide-solid'],['',12,11,'fallen-leaves'],['',15,16,'butterflies'],['',19,9,'bird'],['',11,17,'picnic']]},
-  bench:{name:'日坛 · 长椅区',date:'正式品质样板 · 下午',start:[4,12],hedy:[6,12],tiles:grid(benchTiles),props:[
+    ['',1,4,'subway-atlas sm-platform-doors solid mega-solid'],['双井站',25,4,'subway-atlas sm-wall solid large-solid'],['',7,7,'subway-atlas sm-route'],['',15,7,'subway-atlas sm-roundel'],['',18,8,'subway-atlas sm-ticket solid'],['',20,8,'subway-atlas sm-ticket-red solid'],['',24,8,'subway-atlas sm-turnstiles solid large-solid'],['',31,7,'subway-atlas sm-escalator solid mega-solid'],
+    ['',6,15,'subway-atlas sm-bench solid wide-solid'],['',15,15,'subway-atlas sm-bench solid wide-solid'],['',24,15,'subway-atlas sm-bench solid wide-solid'],...[[4,6],[13,6],[22,6],[29,6]].map(([x,y])=>['',x,y,'subway-atlas sm-pillar solid']),['',18,13,'subway-atlas sm-trash solid'],['',2,17,'subway-atlas sm-tactile'],['',10,17,'subway-atlas sm-tactile'],['',18,17,'subway-atlas sm-tactile'],['',27,17,'subway-atlas sm-tactile'],['出口 A',28,4,'subway-atlas sm-exit landmark solid large-solid'],['7号线换乘厅',23,3,'subway-atlas sm-corridor landmark solid large-solid'],['',3,12,'subway-atlas sm-mcd'] ]},
+  park:{name:'日坛公园 · 完整园区',date:'2022 · 07 · 11 · 下午',start:[5,14],hedy:[7,14],tiles:grid(parkTiles),props:[
+    ['西门',1,13,'heritage h-gate solid large-solid'],['北天门',17,2,'heritage h-gate solid large-solid'],['西天门',15,11,'heritage h-gate solid large-solid'],['朝日坛',25,8,'heritage h-altar solid mega-solid'],['神库',24,3,'heritage h-small-hall solid large-solid'],['神厨',28,3,'heritage h-small-hall solid large-solid'],['宰牲亭',32,5,'heritage h-small-hall solid large-solid'],['具服殿',19,4,'heritage h-hall solid large-solid'],['祭日壁画',31,12,'heritage h-mural solid large-solid'],
+    ['曲池胜春',8,19,'heritage h-water-pavilion solid mega-solid'],['玉馨园',13,22,'heritage h-garden-gate solid large-solid'],['牡丹园',3,6,'garden-label landmark'],['小土坡',29,19,'atlas atlas-pavilion solid large-solid hill-marker'],
+    ['',3,17,'atlas atlas-pond solid mega-solid'],['',13,13,'atlas atlas-bench park-bench solid wide-solid'],['',21,15,'atlas atlas-bench solid wide-solid'],['',13,23,'atlas atlas-bench solid wide-solid'],
+    ...[[1,4,'a'],[6,4,'b'],[11,5,'c'],[15,7,'a'],[22,6,'b'],[33,9,'c'],[2,25,'b'],[16,25,'a'],[24,23,'c'],[33,24,'b']].map(([x,y,t])=>['',x,y,`atlas atlas-tree-${t} solid large-solid`]),
+    ...[[5,8],[8,8],[3,10],[11,7]].map(([x,y])=>['',x,y,'atlas atlas-pink-flowers']),...[[13,18],[18,22],[25,18]].map(([x,y])=>['',x,y,'atlas atlas-yellow-flowers']),
+    ...[[11,14],[16,14],[21,14],[12,23],[25,16]].map(([x,y])=>['',x,y,'atlas atlas-lamp solid']),['',10,16,'atlas atlas-camera camera-spot']]},
+  bench:{name:'日坛公园 · 长椅区',date:'正式品质样板 · 下午',start:[4,12],hedy:[6,12],tiles:grid(benchTiles),props:[
     ['',1,5,'atlas atlas-tree-a solid large-solid'],['',6,4,'atlas atlas-tree-b solid large-solid'],['',18,4,'atlas atlas-flower-tree solid large-solid'],['',26,5,'atlas atlas-willow solid large-solid'],['',2,18,'atlas atlas-tree-c solid large-solid'],['',23,18,'atlas atlas-tree-b solid large-solid'],
     ['',12,9,'atlas atlas-bench solid wide-solid memory-bench'],['',4,10,'atlas atlas-pink-flowers'],['',8,15,'atlas atlas-yellow-flowers'],['',18,15,'atlas atlas-pink-flowers'],['',15,6,'atlas atlas-lamp solid'],['',10,17,'atlas atlas-wall solid large-solid'],['',22,3,'atlas atlas-pond solid large-solid'],['',25,9,'atlas atlas-pavilion solid large-solid'],['',17,12,'atlas atlas-camera camera-spot']]},
   homestay:{name:'北京民宿',date:'2022 · 07 · 12',start:[3,17],hedy:[5,17],tiles:grid(homeTiles),props:[
-    ['Loft',3,3,'home-loft landmark solid large-solid'],['',8,5,'home-tent solid large-solid'],['',11,6,'home-bear solid wide-solid'],['',5,12,'home-sofa solid large-solid'],['',22,5,'home-kitchen solid large-solid'],['',22,12,'home-table solid large-solid'],['',15,4,'home-screen solid wide-solid'],['拍立得',14,13,'home-polaroids landmark']]},
-  jingshan:{name:'景山公园',date:'2022 · 07 · 13 · 傍晚',start:[15,20],hedy:[17,20],tiles:grid(jingTiles),props:[
-    ['南门',14,20,'gate south-gate landmark solid wide-solid'],['绮望楼',13,17,'qiwang-hall landmark solid wide-solid'],['周赏亭',4,7,'small-pagoda landmark solid'],['观妙亭',9,6,'small-pagoda landmark solid'],['万春亭',14,5,'pagoda landmark solid wide-solid'],['辑芳亭',20,6,'small-pagoda landmark solid'],['富览亭',25,7,'small-pagoda landmark solid'],['寿皇殿',13,2,'shouhuang-hall landmark solid wide-solid'],['明思宗殉国处',5,15,'memorial-tree tree-sign landmark solid'],['故宫全景',20,9,'viewpoint'],
-    ...trees([[3,8],[7,7],[22,7],[26,9],[2,14],[9,14],[21,14],[27,15],[5,19],[24,19]],'tree pine big solid'),
-    ...[[12,14],[17,14],[12,11],[17,11],[12,8],[17,8]].map(([x,y])=>['',x,y,'stair']),...[[10,17],[19,17],[10,10],[19,10]].map(([x,y])=>['',x,y,'stone-wall solid wide-solid']),
-    ['',8,16,'bench park-bench solid wide-solid'],['',21,16,'bench park-bench solid wide-solid'],['',14,8,'lantern solid'],['',16,8,'lantern solid'],['',20,8,'telescope solid']]}
+    ['Loft',2,3,'home-atlas hm-loft landmark solid mega-solid'],['',17,3,'home-atlas hm-tent solid mega-solid'],['',27,4,'home-atlas hm-bear solid large-solid'],['',3,13,'home-atlas hm-sofa solid large-solid'],['',10,13,'home-atlas hm-coffee solid wide-solid'],['',18,13,'home-atlas hm-table solid large-solid'],['',26,12,'home-atlas hm-kitchen solid mega-solid'],['',3,5,'home-atlas hm-screen solid large-solid'],['',8,8,'home-atlas hm-projector solid'],['拍立得',14,16,'home-atlas hm-polaroids landmark'],['',23,18,'home-atlas hm-bottles'],['',29,18,'home-atlas hm-buns'],['',33,10,'home-atlas hm-plants solid large-solid']]},
+  jingshan:{name:'景山公园',date:'2022 · 07 · 13 · 傍晚',start:[18,26],hedy:[20,26],tiles:grid(jingTiles),props:[
+    ['南门',16,24,'heritage h-south-gate landmark solid large-solid'],['绮望楼',15,20,'heritage h-qiwang landmark solid mega-solid'],['周赏亭',4,9,'heritage h-small-pavilion landmark solid large-solid'],['观妙亭',10,7,'heritage h-small-pavilion landmark solid large-solid'],['万春亭',16,5,'heritage h-wanchun pagoda landmark solid large-solid'],['辑芳亭',23,7,'heritage h-small-pavilion landmark solid large-solid'],['富览亭',30,9,'heritage h-small-pavilion landmark solid large-solid'],['寿皇殿',14,2,'heritage h-shouhuang landmark solid mega-solid'],['明思宗殉国处',29,18,'heritage h-tree-memorial tree-sign landmark solid large-solid'],['故宫全景',13,12,'heritage h-palace-view viewpoint'],
+    ...trees([[2,7],[7,13],[27,13],[33,14],[3,20],[9,18],[27,23],[33,22]],'atlas atlas-tree-b solid large-solid'),['',15,15,'heritage h-stairs solid large-solid'],['',21,15,'heritage h-stairs solid large-solid'],['',7,18,'heritage h-wall solid mega-solid'],['',22,18,'heritage h-wall solid mega-solid'],['',10,23,'atlas atlas-bench solid wide-solid'],['',25,23,'atlas atlas-bench solid wide-solid']]}
 };
 
 let holdTimer=null,walkTimer=null;
@@ -58,7 +56,7 @@ function drawMap(name){
 }
 function placeActors(){const p=$('#player'),h=$('#hedy');p.style.left=`${state.x*TILE}px`;p.style.top=`${state.y*TILE}px`;p.style.zIndex=String(40+state.y);if(h){h.style.left=`${state.hx*TILE}px`;h.style.top=`${state.hy*TILE}px`;h.style.zIndex=String(39+state.hy)}}
 function camera(){const vp=$('#viewport'),world=$('#world');const scale=vp.clientWidth<760?.94:1;const px=state.x*TILE*scale,py=state.y*TILE*scale;const maxX=Math.max(0,W*TILE*scale-vp.clientWidth),maxY=Math.max(0,H*TILE*scale-vp.clientHeight);const cx=Math.max(0,Math.min(maxX,px-vp.clientWidth*.5)),cy=Math.max(0,Math.min(maxY,py-vp.clientHeight*.48));world.style.transform=`translate3d(${-cx}px,${-cy}px,0) scale(${scale})`}
-function solidCells(){const cells=new Set();for(const[,x,y,c='']of maps[state.map].props){if(!c.includes('solid'))continue;let w=c.includes('wide-solid')?2:1,h=1;if(c.includes('pond-wide')){w=5;h=3}if(c.includes('large-solid')||c.includes('ritual-hall')||c.includes('small-pagoda')){w=3;h=2}if(c.includes('sun-altar')||c.includes('qiwang-hall')||c.includes('pagoda')){w=4;h=3}if(c.includes('shouhuang-hall')){w=5;h=3}for(let dx=0;dx<w;dx++)for(let dy=0;dy<h;dy++)cells.add(key(x+dx,y+dy))}return cells}
+function solidCells(){const cells=new Set();for(const[,x,y,c='']of maps[state.map].props){if(!c.includes('solid'))continue;let w=c.includes('wide-solid')?2:1,h=1;if(c.includes('pond-wide')){w=5;h=3}if(c.includes('large-solid')||c.includes('ritual-hall')||c.includes('small-pagoda')){w=3;h=2}if(c.includes('mega-solid')){w=6;h=4}if(c.includes('sun-altar')||c.includes('qiwang-hall')||c.includes('pagoda')){w=4;h=3}if(c.includes('shouhuang-hall')){w=5;h=3}for(let dx=0;dx<w;dx++)for(let dy=0;dy<h;dy++)cells.add(key(x+dx,y+dy))}return cells}
 function tileBlocked(x,y){const t=maps[state.map].tiles[y]?.[x];return!t||['track','water','sky','cliff'].includes(t)}
 function canMove(x,y,ignoreHedy=false){return x>=0&&y>=0&&x<W&&y<H&&!tileBlocked(x,y)&&!solidCells().has(key(x,y))&&(ignoreHedy||x!==state.hx||y!==state.hy)}
 function move(dir){if(state.locked)return;const d={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]}[dir];const nx=state.x+d[0],ny=state.y+d[1];state.facing=dir;const p=$('#player');p.classList.toggle('face-left',dir==='left');if(!canMove(nx,ny)){bump();return}const old=[state.x,state.y];state.x=nx;state.y=ny;state.steps++;p.classList.add('walking');if(state.follow&&canMove(old[0],old[1],true)){state.hx=old[0];state.hy=old[1]}placeActors();camera();checkNearby();checkAutoEvent();clearTimeout(walkTimer);walkTimer=setTimeout(()=>p.classList.remove('walking'),160)}
@@ -68,12 +66,12 @@ function nearProp(selector,r=2){const nearby=[...document.querySelectorAll(selec
 function inArea(x1,y1,x2,y2){return state.x>=x1&&state.x<=x2&&state.y>=y1&&state.y<=y2}
 function checkAutoEvent(){
   if(state.locked)return;
-  if(state.map==='park'&&inArea(18,9,21,12)&&!state.events.has('ritan-altar'))return photoMoment('ritan-altar','朝日坛打卡','站到坛门前时，两个人很自然地停了下来。Hedy 举起手机，他们靠近一点，留下了日坛的第一张合照。');
-  if(state.map==='park'&&inArea(10,16,14,19)&&!state.events.has('ritan-video'))return photoMoment('ritan-video','长椅视频','他们在树荫下坐下。Hedy 一会儿把镜头转向猪头，一会儿又凑到镜头里，拍下很多短短的视频。');
+  if(state.map==='park'&&inArea(23,8,31,15)&&!state.events.has('ritan-altar'))return photoMoment('ritan-altar','朝日坛打卡','站到坛门前时，两个人很自然地停了下来。Hedy 举起手机，他们靠近一点，留下了日坛公园的第一张合照。');
+  if(state.map==='park'&&inArea(11,12,16,16)&&!state.events.has('ritan-video'))return photoMoment('ritan-video','长椅视频','他们在树荫下坐下。Hedy 一会儿把镜头转向猪头，一会儿又凑到镜头里，拍下很多短短的视频。');
   if(state.map==='bench'&&inArea(10,10,16,14)&&!state.events.has('bench-master'))return benchMasterScene();
   if(state.map==='homestay'&&inArea(12,10,18,16)&&!state.events.has('home-polaroids'))return photoMoment('home-polaroids','民宿拍立得','饭终于做好，电影却没有认真看完。他们窝在沙发边做猪鼻子，拍下三张后来一直保存着的拍立得。');
-  if(state.map==='jingshan'&&inArea(18,8,22,11)&&!state.events.has('jingshan-view'))return photoMoment('jingshan-view','故宫合照','走到观景台，两个人自动停下脚步，把故宫屋顶和傍晚的风一起留进照片里。');
-  if(state.map==='jingshan'&&inArea(12,5,18,8)&&!state.events.has('wanchun-song')){state.events.add('wanchun-song');state.locked=true;return bubble('猪头','那首歌叫什么来着？',()=>bubble('Hedy','大风车吱呀吱悠悠地转……',()=>transition('她一下就哼出了旋律。后来在威海的日落里，这首歌又出现了一次。',()=>{state.locked=false})))}
+  if(state.map==='jingshan'&&inArea(12,10,22,14)&&!state.events.has('jingshan-view'))return photoMoment('jingshan-view','故宫合照','走到观景台，两个人自动停下脚步，把故宫屋顶和傍晚的风一起留进照片里。');
+  if(state.map==='jingshan'&&inArea(15,5,22,9)&&!state.events.has('wanchun-song')){state.events.add('wanchun-song');state.locked=true;return bubble('猪头','那首歌叫什么来着？',()=>bubble('Hedy','大风车吱呀吱悠悠地转……',()=>transition('她一下就哼出了旋律。后来在威海的日落里，这首歌又出现了一次。',()=>{state.locked=false})))}
 }
 function photoMoment(id,title,narration){state.events.add(id);state.locked=true;safePair(2);const cx=(state.x+state.hx)/2,cy=Math.max(state.y,state.hy);actionAt('photo',cx,cy);bubble('Hedy','靠近一点，看镜头。',()=>transition(narration,()=>{endAction();setObjective(`已完成：${title}`);heartBurst(cx,cy)}))}
 function benchMasterScene(){state.events.add('bench-master');state.locked=true;state.x=11;state.y=11;state.hx=14;state.hy=11;placeActors();actionAt('sit-video',12.5,11);bubble('Hedy','坐这里，看看宝宝。',()=>bubble('猪头','在看。',()=>bubble('Hedy','那我们再拍一个。',()=>transition('Hedy 举起手机。镜头先拍到树叶和阳光，再慢慢转回来。猪头靠近一点，两个人一起笑了。',()=>{endAction();localStorage.setItem('bj-bench-polaroid','1');setObjective('拍立得已解锁 · 可以继续散步');heartBurst(12.5,11)}))))}
