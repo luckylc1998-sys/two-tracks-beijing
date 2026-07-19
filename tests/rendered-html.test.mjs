@@ -30,6 +30,8 @@ test("includes the expanded three-map exploration slice", async () => {
   assert.match(html, /日坛公园/);
   assert.match(html, /景山公园/);
   assert.match(html, /data-map="jingshan"/);
+  assert.match(html, /data-map="bench"/);
+  assert.match(html, /data-map="homestay"/);
   assert.match(html, /data-dir="up"/);
   assert.match(html, /id="actionBtn"/);
   assert.match(html, /couple-sprites-lite\.png/);
@@ -48,6 +50,8 @@ test("includes the expanded three-map exploration slice", async () => {
   assert.match(js, /function tileBlocked\(x,y\)/);
   assert.match(js, /function checkAutoEvent\(\)/);
   assert.match(js, /function photoMoment\(id,title,narration\)/);
+  assert.match(js, /function benchMasterScene\(\)/);
+  assert.match(js, /北京民宿/);
   assert.match(js, /朝日坛/);
   assert.match(js, /周赏亭/);
   assert.match(js, /寿皇殿/);
@@ -56,4 +60,5 @@ test("includes the expanded three-map exploration slice", async () => {
   assert.match(html, /prop\.pond/);
   assert.match(html, /prop\.pagoda/);
   assert.match(html, /class="quickbar"/);
+  assert.match(html, /ritan-bench-atlas-mobile\.webp/);
 });
