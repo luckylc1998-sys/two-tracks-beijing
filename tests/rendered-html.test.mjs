@@ -34,7 +34,7 @@ test("includes the expanded three-map exploration slice", async () => {
   assert.match(html, /data-map="homestay"/);
   assert.match(html, /data-dir="up"/);
   assert.match(html, /id="actionBtn"/);
-  assert.match(html, /couple-sprites-lite\.png/);
+  assert.match(html, /couple-sprites-v2\.webp/);
   assert.match(css, /\.tiles\{/);
   assert.match(css, /touch-action:none/);
   assert.match(js, /function move\(dir\)/);
@@ -46,6 +46,9 @@ test("includes the expanded three-map exploration slice", async () => {
   assert.match(js, /function solidCells\(\)/);
   assert.match(js, /function safePair\(gap=1\)/);
   assert.match(js, /function stagePairOnClearGround\(\)/);
+  assert.match(js, /function scriptedAction\(type,narration,id,done\)/);
+  assert.match(js, /function confessionScene\(\)/);
+  assert.match(js, /function unlockMemory\(id\)/);
   assert.match(js, /setInterval\(\(\)=>move/);
   assert.match(js, /W=36,H=28/);
   assert.match(js, /function tileBlocked\(x,y\)/);
@@ -58,6 +61,11 @@ test("includes the expanded three-map exploration slice", async () => {
   assert.match(html, /sprites-ready \.action-scene::before/);
   assert.match(js, /function benchMasterScene\(\)/);
   assert.match(js, /北京民宿/);
+  assert.match(js, /抵达北京 · 前往民宿/);
+  assert.match(js, /使馆街 · 并肩散步/);
+  assert.match(js, /墨西哥餐厅/);
+  assert.match(js, /长安街 · 正式表白/);
+  assert.match(js, /第四天 · 酒店告别/);
   assert.match(js, /朝日坛/);
   assert.match(js, /日坛公园 · 西门林荫区/);
   assert.match(js, /日坛公园 · 曲池胜春/);
