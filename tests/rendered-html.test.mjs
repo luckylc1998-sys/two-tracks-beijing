@@ -50,6 +50,10 @@ test("includes the expanded three-map exploration slice", async () => {
   assert.match(js, /function tileBlocked\(x,y\)/);
   assert.match(js, /function checkAutoEvent\(\)/);
   assert.match(js, /function photoMoment\(id,title,narration\)/);
+  assert.match(js, /拍照 · 站好不要动/);
+  assert.match(js, /REC 00:03/);
+  assert.match(html, /id="photoFx"/);
+  assert.match(html, /action-scene\.photo\{background-position:14\.286% 100%\}/);
   assert.match(js, /function benchMasterScene\(\)/);
   assert.match(js, /北京民宿/);
   assert.match(js, /朝日坛/);
