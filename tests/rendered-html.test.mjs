@@ -57,7 +57,12 @@ test("includes the expanded three-map exploration slice", async () => {
   assert.match(js, /function benchMasterScene\(\)/);
   assert.match(js, /北京民宿/);
   assert.match(js, /朝日坛/);
-  assert.match(js, /日坛公园 · 完整园区/);
+  assert.match(js, /日坛公园 · 西门林荫区/);
+  assert.match(js, /日坛公园 · 曲池胜春/);
+  assert.match(js, /日坛公园 · 朝日坛古建区/);
+  assert.match(js, /日坛公园 · 清晖观日/);
+  assert.match(js, /function zoneShift\(name,entry\)/);
+  assert.match(js, /vp\.clientWidth<760\?1\.18:1\.06/);
   assert.match(js, /宰牲亭/);
   assert.match(js, /曲池胜春/);
   assert.match(js, /玉馨园/);
